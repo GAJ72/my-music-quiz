@@ -27,6 +27,19 @@ const DailyMusicQuiz = () => {
   const [cvc, setCvc] = useState('');
   const [cardName, setCardName] = useState('');
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const difficulties = {
     easy: {
       name: "Easy",
@@ -35,7 +48,7 @@ const DailyMusicQuiz = () => {
       bgColor: "rgba(16, 185, 129, 0.2)",
       timer: 15,
       pointsMultiplier: 1,
-      description: "Perfect for beginners • 15 seconds per question"
+      description: "Perfect for beginners • 15s per question"
     },
     medium: {
       name: "Medium", 
@@ -44,7 +57,7 @@ const DailyMusicQuiz = () => {
       bgColor: "rgba(245, 158, 11, 0.2)",
       timer: 10,
       pointsMultiplier: 1.5,
-      description: "For music enthusiasts • 10 seconds per question"
+      description: "For music enthusiasts • 10s per question"
     },
     hard: {
       name: "Hard",
@@ -53,7 +66,7 @@ const DailyMusicQuiz = () => {
       bgColor: "rgba(239, 68, 68, 0.2)",
       timer: 7,
       pointsMultiplier: 2,
-      description: "Expert level challenge • 7 seconds per question"
+      description: "Expert level challenge • 7s per question"
     }
   };
 
@@ -735,44 +748,56 @@ const DailyMusicQuiz = () => {
     setView('selection');
   };
 
+  // Mobile-optimized styles
   const buttonStyle = {
     border: 'none',
-    borderRadius: '9999px',
+    borderRadius: '1rem',
     fontWeight: 'bold',
     cursor: 'pointer',
-    transition: 'all 0.3s ease'
+    transition: 'all 0.2s ease',
+    touchAction: 'manipulation',
+    WebkitTapHighlightColor: 'transparent',
+    userSelect: 'none'
   };
 
   const cardStyle = {
     background: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '1.5rem',
+    borderRadius: isMobile ? '1rem' : '1.5rem',
     backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
   };
 
   const gradientBg = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #4c1d95 0%, #1e40af 50%, #3730a3 100%)',
-    padding: '1rem'
+    padding: isMobile ? '0.5rem' : '1rem'
+  };
+
+  const mobileContainer = {
+    width: '100%',
+    maxWidth: isMobile ? '100%' : '32rem',
+    margin: '0 auto',
+    padding: isMobile ? '0' : '0'
   };
 
   // Payment view
   if (view === 'payment' && selectedPackage) {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          <div style={{ ...cardStyle, padding: '2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <CreditCard style={{ width: '4rem', height: '4rem', color: '#10b981', margin: '0 auto 1rem' }} />
-              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+        <div style={mobileContainer}>
+          <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
+            <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+              <CreditCard style={{ width: isMobile ? '3rem' : '4rem', height: isMobile ? '3rem' : '4rem', color: '#10b981', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                 Complete Purchase
               </h2>
               
               <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                <h3 style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
                   {selectedPackage.name}
                 </h3>
-                <p style={{ color: '#10b981', fontSize: '1.125rem', margin: '0.25rem 0' }}>
+                <p style={{ color: '#10b981', fontSize: isMobile ? '1rem' : '1.125rem', margin: '0.25rem 0' }}>
                   {selectedPackage.credits} Credits
                 </p>
                 <p style={{ fontSize: '0.875rem', color: '#d1d5db', margin: '0.5rem 0' }}>
@@ -783,15 +808,15 @@ const DailyMusicQuiz = () => {
                     {selectedPackage.savings}
                   </p>
                 )}
-                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', margin: '0.5rem 0 0' }}>
+                <p style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', margin: '0.5rem 0 0' }}>
                   £{selectedPackage.price}
                 </p>
               </div>
             </div>
 
             <form onSubmit={handlePaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.75rem', padding: '1.5rem' }}>
-                <h3 style={{ color: 'white', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.75rem', padding: isMobile ? '1rem' : '1.5rem' }}>
+                <h3 style={{ color: 'white', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: isMobile ? '1rem' : '1.125rem' }}>
                   <Lock style={{ width: '1.25rem', height: '1.25rem' }} />
                   Secure Payment Details
                 </h3>
@@ -808,11 +833,12 @@ const DailyMusicQuiz = () => {
                       placeholder="John Smith"
                       style={{ 
                         width: '100%', 
-                        padding: '0.75rem', 
+                        padding: isMobile ? '1rem' : '0.75rem', 
                         background: 'white', 
                         borderRadius: '0.5rem', 
                         border: '0',
-                        fontSize: '1rem'
+                        fontSize: isMobile ? '1rem' : '1rem',
+                        boxSizing: 'border-box'
                       }}
                     />
                   </div>
@@ -829,12 +855,13 @@ const DailyMusicQuiz = () => {
                       maxLength={19}
                       style={{ 
                         width: '100%', 
-                        padding: '0.75rem', 
+                        padding: isMobile ? '1rem' : '0.75rem', 
                         background: 'white', 
                         borderRadius: '0.5rem', 
                         border: '0',
                         fontFamily: 'monospace',
-                        fontSize: '1rem'
+                        fontSize: isMobile ? '1rem' : '1rem',
+                        boxSizing: 'border-box'
                       }}
                     />
                   </div>
@@ -852,12 +879,13 @@ const DailyMusicQuiz = () => {
                         maxLength={5}
                         style={{ 
                           width: '100%', 
-                          padding: '0.75rem', 
+                          padding: isMobile ? '1rem' : '0.75rem', 
                           background: 'white', 
                           borderRadius: '0.5rem', 
                           border: '0',
                           fontFamily: 'monospace',
-                          fontSize: '1rem'
+                          fontSize: isMobile ? '1rem' : '1rem',
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
@@ -874,12 +902,13 @@ const DailyMusicQuiz = () => {
                         maxLength={4}
                         style={{ 
                           width: '100%', 
-                          padding: '0.75rem', 
+                          padding: isMobile ? '1rem' : '0.75rem', 
                           background: 'white', 
                           borderRadius: '0.5rem', 
                           border: '0',
                           fontFamily: 'monospace',
-                          fontSize: '1rem'
+                          fontSize: isMobile ? '1rem' : '1rem',
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
@@ -888,8 +917,8 @@ const DailyMusicQuiz = () => {
               </div>
 
               <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '0.75rem', padding: '1rem' }}>
-                <h4 style={{ color: '#93c5fd', fontWeight: '600', marginBottom: '0.5rem' }}>💳 Test Mode - Use These Cards:</h4>
-                <div style={{ fontSize: '0.875rem', color: '#bfdbfe' }}>
+                <h4 style={{ color: '#93c5fd', fontWeight: '600', marginBottom: '0.5rem', fontSize: isMobile ? '0.875rem' : '1rem' }}>💳 Test Mode - Use These Cards:</h4>
+                <div style={{ fontSize: '0.75rem', color: '#bfdbfe' }}>
                   <p style={{ margin: '0.25rem 0' }}>✅ Success: <span style={{ fontFamily: 'monospace' }}>4242 4242 4242 4242</span></p>
                   <p style={{ margin: '0.25rem 0' }}>❌ Decline: <span style={{ fontFamily: 'monospace' }}>4000 0000 0000 0002</span></p>
                   <p style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>Use any future expiry date and any CVC</p>
@@ -903,20 +932,20 @@ const DailyMusicQuiz = () => {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem' }}>
                 <button
                   type="submit"
                   disabled={paymentLoading}
                   style={{
                     ...buttonStyle,
                     flex: 1,
-                    padding: '1rem 1.5rem',
+                    padding: isMobile ? '1.25rem 1.5rem' : '1rem 1.5rem',
                     background: paymentLoading 
                       ? '#6b7280'
                       : 'linear-gradient(135deg, #059669, #2563eb)',
                     color: paymentLoading ? '#9ca3af' : 'white',
                     cursor: paymentLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '1rem'
+                    fontSize: isMobile ? '1.125rem' : '1rem'
                   }}
                 >
                   {paymentLoading ? (
@@ -946,10 +975,11 @@ const DailyMusicQuiz = () => {
                   disabled={paymentLoading}
                   style={{
                     ...buttonStyle,
-                    padding: '1rem 1.5rem',
+                    padding: isMobile ? '1.25rem 1.5rem' : '1rem 1.5rem',
                     background: 'transparent',
                     color: '#93c5fd',
-                    fontSize: '1rem'
+                    fontSize: isMobile ? '1.125rem' : '1rem',
+                    border: '1px solid rgba(147, 197, 253, 0.3)'
                   }}
                 >
                   Cancel
@@ -957,9 +987,9 @@ const DailyMusicQuiz = () => {
               </div>
             </form>
 
-            <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+            <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.75rem', color: '#9ca3af' }}>
               <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', margin: '0.25rem 0' }}>
-                <Lock style={{ width: '1rem', height: '1rem' }} />
+                <Lock style={{ width: '0.875rem', height: '0.875rem' }} />
                 Secured by 256-bit SSL encryption
               </p>
               <p style={{ margin: '0.25rem 0' }}>🔒 Your payment information is encrypted and secure</p>
@@ -967,7 +997,7 @@ const DailyMusicQuiz = () => {
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -981,14 +1011,14 @@ const DailyMusicQuiz = () => {
   if (view === 'store') {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          <div style={{ ...cardStyle, padding: '2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <Coins style={{ width: '4rem', height: '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
-              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+        <div style={mobileContainer}>
+          <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
+            <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+              <Coins style={{ width: isMobile ? '3rem' : '4rem', height: isMobile ? '3rem' : '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                 Credit Store
               </h2>
-              <p style={{ color: '#bfdbfe' }}>Buy credits to extend your quiz time</p>
+              <p style={{ color: '#bfdbfe', fontSize: isMobile ? '0.875rem' : '1rem' }}>Buy credits to extend your quiz time</p>
               {currentUser && (
                 <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#93c5fd' }}>
                   Welcome back, <span style={{ color: '#a855f7', fontWeight: '600' }}>{currentUser.name}</span>!<br/>
@@ -997,7 +1027,7 @@ const DailyMusicQuiz = () => {
               )}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '1rem', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
               {creditPackages.map((pack) => (
                 <div 
                   key={pack.id} 
@@ -1006,7 +1036,7 @@ const DailyMusicQuiz = () => {
                     background: `linear-gradient(135deg, rgba(${pack.color === 'green' ? '34, 197, 94' : pack.color === 'purple' ? '168, 85, 247' : '245, 158, 11'}, 0.2), rgba(${pack.color === 'green' ? '22, 163, 74' : pack.color === 'purple' ? '147, 51, 234' : '217, 119, 6'}, 0.2))`,
                     border: `1px solid rgba(${pack.color === 'green' ? '34, 197, 94' : pack.color === 'purple' ? '168, 85, 247' : '245, 158, 11'}, 0.3)`,
                     borderRadius: '1rem',
-                    padding: '1.5rem',
+                    padding: isMobile ? '1rem' : '1.5rem',
                     ...(pack.popular ? { 
                       boxShadow: '0 0 0 2px rgba(245, 158, 11, 0.5)' 
                     } : {})
@@ -1022,21 +1052,21 @@ const DailyMusicQuiz = () => {
                       color: 'black',
                       padding: '0.25rem 1rem',
                       borderRadius: '9999px',
-                      fontSize: '0.875rem',
+                      fontSize: '0.75rem',
                       fontWeight: 'bold'
                     }}>
                       ⭐ MOST POPULAR
                     </div>
                   )}
                   
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'center', justifyContent: 'space-between', gap: isMobile ? '1rem' : '0' }}>
+                    <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+                      <h3 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                         {pack.name}
                       </h3>
                       <p style={{ 
                         color: pack.color === 'green' ? '#86efac' : pack.color === 'purple' ? '#c084fc' : '#fcd34d', 
-                        fontSize: '1.125rem', 
+                        fontSize: '1rem', 
                         fontWeight: '600', 
                         marginBottom: '0.25rem' 
                       }}>
@@ -1055,7 +1085,7 @@ const DailyMusicQuiz = () => {
                       )}
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                      <div style={{ fontSize: isMobile ? '1.75rem' : '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
                         £{pack.price}
                       </div>
                       <button
@@ -1064,11 +1094,11 @@ const DailyMusicQuiz = () => {
                           ...buttonStyle,
                           background: `linear-gradient(135deg, ${pack.color === 'green' ? '#059669, #047857' : pack.color === 'purple' ? '#7c3aed, #6d28d9' : '#d97706, #b45309'})`,
                           color: 'white',
-                          padding: '0.75rem 1.5rem',
+                          padding: isMobile ? '1rem 1.5rem' : '0.75rem 1.5rem',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          fontSize: '1rem'
+                          fontSize: isMobile ? '1rem' : '1rem'
                         }}
                       >
                         <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
@@ -1080,9 +1110,9 @@ const DailyMusicQuiz = () => {
               ))}
             </div>
 
-            <div style={{ textAlign: 'center', fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
+            <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <Lock style={{ width: '1rem', height: '1rem' }} />
+                <Lock style={{ width: '0.875rem', height: '0.875rem' }} />
                 <span>Secure payments powered by Stripe</span>
               </div>
               <p style={{ margin: '0.25rem 0' }}>🔒 Your payment information is encrypted and secure</p>
@@ -1092,14 +1122,14 @@ const DailyMusicQuiz = () => {
             <button 
               onClick={() => setView('selection')} 
               style={{
+                ...buttonStyle,
                 background: 'transparent',
-                border: 'none',
+                border: '1px solid rgba(147, 197, 253, 0.3)',
                 color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
                 display: 'block',
                 margin: '0 auto',
-                fontSize: '1rem'
+                fontSize: isMobile ? '1.125rem' : '1rem',
+                padding: isMobile ? '1rem 2rem' : '0.75rem 1.5rem'
               }}
             >
               Back to Menu
@@ -1114,31 +1144,36 @@ const DailyMusicQuiz = () => {
   if (view === 'selection') {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ maxWidth: isMobile ? '100%' : '48rem', margin: '0 auto', padding: isMobile ? '0.5rem' : '0' }}>
+          <div style={{ textAlign: 'center', marginBottom: isMobile ? '2rem' : '3rem', padding: isMobile ? '1rem' : '0' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Music style={{ width: '3rem', height: '3rem', color: '#fbbf24' }} />
-              <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+              <Music style={{ width: isMobile ? '2.5rem' : '3rem', height: isMobile ? '2.5rem' : '3rem', color: '#fbbf24' }} />
+              <h1 style={{ fontSize: isMobile ? '2rem' : '3rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
                 Daily Music Quiz
               </h1>
             </div>
-            <p style={{ fontSize: '1.25rem', color: '#bfdbfe', marginBottom: '2rem' }}>
+            <p style={{ fontSize: isMobile ? '1rem' : '1.25rem', color: '#bfdbfe', marginBottom: isMobile ? '1rem' : '2rem' }}>
               Choose your difficulty and category to start your musical journey
             </p>
             {currentUser && (
-              <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#93c5fd' }}>
+              <div style={{ marginBottom: '1rem', fontSize: isMobile ? '0.875rem' : '1rem', color: '#93c5fd' }}>
                 Welcome back, <span style={{ color: '#a855f7', fontWeight: '600' }}>{currentUser.name}</span>!<br/>
                 Credits: <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{credits}</span>
               </div>
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            <div style={{ ...cardStyle, padding: '2rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+            gap: isMobile ? '1rem' : '2rem',
+            padding: isMobile ? '0 0.5rem' : '0'
+          }}>
+            <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem' }}>
+              <h2 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
                 Choose Difficulty
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '1rem' }}>
                 {Object.entries(difficulties).map(([key, diff]) => {
                   const Icon = diff.icon;
                   const isSelected = selectedDifficulty === key;
@@ -1147,27 +1182,29 @@ const DailyMusicQuiz = () => {
                       key={key}
                       onClick={() => setSelectedDifficulty(key)}
                       style={{
-                        padding: '1.5rem',
+                        padding: isMobile ? '1rem' : '1.5rem',
                         borderRadius: '1rem',
                         border: `2px solid ${isSelected ? diff.color : 'rgba(255, 255, 255, 0.2)'}`,
                         background: isSelected ? diff.bgColor : 'rgba(255, 255, 255, 0.1)',
                         cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        textAlign: 'left'
+                        transition: 'all 0.2s ease',
+                        textAlign: 'left',
+                        touchAction: 'manipulation',
+                        WebkitTapHighlightColor: 'transparent'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                        <Icon style={{ width: '2rem', height: '2rem', color: diff.color }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', marginBottom: '0.75rem' }}>
+                        <Icon style={{ width: isMobile ? '1.5rem' : '2rem', height: isMobile ? '1.5rem' : '2rem', color: diff.color }} />
                         <div>
-                          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                          <h3 style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
                             {diff.name}
                           </h3>
-                          <p style={{ color: diff.color, fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+                          <p style={{ color: diff.color, fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
                             {diff.pointsMultiplier}x Points
                           </p>
                         </div>
                       </div>
-                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', margin: 0 }}>
+                      <p style={{ color: '#bfdbfe', fontSize: '0.75rem', margin: 0 }}>
                         {diff.description}
                       </p>
                     </button>
@@ -1176,11 +1213,11 @@ const DailyMusicQuiz = () => {
               </div>
             </div>
 
-            <div style={{ ...cardStyle, padding: '2rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
+            <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem' }}>
+              <h2 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
                 Choose Category
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.75rem' : '1rem' }}>
                 {Object.entries(categories).map(([key, cat]) => {
                   const isSelected = selectedCategory === key;
                   return (
@@ -1188,24 +1225,26 @@ const DailyMusicQuiz = () => {
                       key={key}
                       onClick={() => setSelectedCategory(key)}
                       style={{
-                        padding: '1.5rem',
+                        padding: isMobile ? '1rem' : '1.5rem',
                         borderRadius: '1rem',
                         border: `2px solid ${isSelected ? cat.color : 'rgba(255, 255, 255, 0.2)'}`,
                         background: isSelected ? cat.bgColor : 'rgba(255, 255, 255, 0.1)',
                         cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        textAlign: 'left'
+                        transition: 'all 0.2s ease',
+                        textAlign: 'left',
+                        touchAction: 'manipulation',
+                        WebkitTapHighlightColor: 'transparent'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '2rem' }}>{cat.icon}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', marginBottom: '0.75rem' }}>
+                        <span style={{ fontSize: isMobile ? '1.5rem' : '2rem' }}>{cat.icon}</span>
                         <div>
-                          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                          <h3 style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
                             {cat.name}
                           </h3>
                         </div>
                       </div>
-                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', margin: 0 }}>
+                      <p style={{ color: '#bfdbfe', fontSize: '0.75rem', margin: 0 }}>
                         {cat.description}
                       </p>
                     </button>
@@ -1215,7 +1254,7 @@ const DailyMusicQuiz = () => {
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <div style={{ textAlign: 'center', marginTop: isMobile ? '1.5rem' : '2rem', padding: isMobile ? '0 0.5rem' : '0' }}>
             <button
               onClick={startQuiz}
               disabled={!selectedDifficulty || !selectedCategory}
@@ -1226,35 +1265,42 @@ const DailyMusicQuiz = () => {
                   : '#6b7280',
                 color: (selectedDifficulty && selectedCategory) ? 'white' : '#9ca3af',
                 cursor: (selectedDifficulty && selectedCategory) ? 'pointer' : 'not-allowed',
-                padding: '1rem 3rem',
-                fontSize: '1.25rem',
+                padding: isMobile ? '1.25rem 2.5rem' : '1rem 3rem',
+                fontSize: isMobile ? '1.125rem' : '1.25rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
                 margin: '0 auto'
               }}
             >
-              <Play style={{ width: '1.5rem', height: '1.5rem' }} />
+              <Play style={{ width: isMobile ? '1.25rem' : '1.5rem', height: isMobile ? '1.25rem' : '1.5rem' }} />
               Start Quiz
             </button>
             
             {selectedDifficulty && selectedCategory && (
-              <p style={{ color: '#bfdbfe', marginTop: '1rem', fontSize: '0.875rem' }}>
+              <p style={{ color: '#bfdbfe', marginTop: '1rem', fontSize: '0.75rem' }}>
                 You'll face 5 questions • {difficulties[selectedDifficulty].timer}s per question • {difficulties[selectedDifficulty].pointsMultiplier}x score multiplier
               </p>
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            flexWrap: 'wrap',
+            gap: isMobile ? '0.75rem' : '1rem', 
+            marginTop: isMobile ? '1.5rem' : '2rem',
+            padding: isMobile ? '0 0.5rem' : '0'
+          }}>
             <button 
               onClick={() => setView('nameEntry')} 
               style={{
+                ...buttonStyle,
                 background: 'transparent',
-                border: 'none',
+                border: '1px solid rgba(147, 197, 253, 0.3)',
                 color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: isMobile ? '1rem' : '1rem',
+                padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem'
               }}
             >
               Create Profile
@@ -1262,12 +1308,12 @@ const DailyMusicQuiz = () => {
             <button 
               onClick={() => setView('leaderboard')} 
               style={{
+                ...buttonStyle,
                 background: 'transparent',
-                border: 'none',
+                border: '1px solid rgba(147, 197, 253, 0.3)',
                 color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: isMobile ? '1rem' : '1rem',
+                padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem'
               }}
             >
               View Leaderboard
@@ -1275,12 +1321,12 @@ const DailyMusicQuiz = () => {
             <button 
               onClick={() => setView('store')} 
               style={{
+                ...buttonStyle,
                 background: 'transparent',
-                border: 'none',
+                border: '1px solid rgba(147, 197, 253, 0.3)',
                 color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: isMobile ? '1rem' : '1rem',
+                padding: isMobile ? '0.75rem 1rem' : '0.5rem 1rem'
               }}
             >
               Credit Store
@@ -1295,14 +1341,14 @@ const DailyMusicQuiz = () => {
   if (view === 'nameEntry') {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          <div style={{ ...cardStyle, padding: '2rem' }}>
+        <div style={mobileContainer}>
+          <div style={{ ...cardStyle, padding: isMobile ? '1.5rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
             <div style={{ textAlign: 'center' }}>
-              <Users style={{ width: '4rem', height: '4rem', color: '#3b82f6', margin: '0 auto 1rem' }} />
-              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+              <Users style={{ width: isMobile ? '3rem' : '4rem', height: isMobile ? '3rem' : '4rem', color: '#3b82f6', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                 Enter Your Name
               </h2>
-              <p style={{ color: '#bfdbfe', marginBottom: '1.5rem' }}>
+              <p style={{ color: '#bfdbfe', marginBottom: '1.5rem', fontSize: isMobile ? '0.875rem' : '1rem' }}>
                 Create your profile to save progress
               </p>
               
@@ -1314,13 +1360,14 @@ const DailyMusicQuiz = () => {
                 placeholder="Enter your name"
                 style={{
                   width: '100%',
-                  padding: '0.75rem',
+                  padding: isMobile ? '1rem' : '0.75rem',
                   marginBottom: '1.5rem',
                   borderRadius: '0.75rem',
                   background: 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   color: 'white',
-                  fontSize: '1rem'
+                  fontSize: isMobile ? '1.125rem' : '1rem',
+                  boxSizing: 'border-box'
                 }}
               />
 
@@ -1330,13 +1377,13 @@ const DailyMusicQuiz = () => {
                   disabled={!playerName.trim()}
                   style={{
                     ...buttonStyle,
-                    padding: '0.75rem 2rem',
+                    padding: isMobile ? '1.25rem 2rem' : '0.75rem 2rem',
                     background: playerName.trim()
                       ? 'linear-gradient(135deg, #2563eb, #7c3aed)'
                       : '#6b7280',
                     color: playerName.trim() ? 'white' : '#9ca3af',
                     cursor: playerName.trim() ? 'pointer' : 'not-allowed',
-                    fontSize: '1rem'
+                    fontSize: isMobile ? '1.125rem' : '1rem'
                   }}
                 >
                   Create Profile
@@ -1345,12 +1392,12 @@ const DailyMusicQuiz = () => {
                 <button
                   onClick={() => setView('selection')}
                   style={{
+                    ...buttonStyle,
                     background: 'transparent',
-                    border: 'none',
+                    border: '1px solid rgba(147, 197, 253, 0.3)',
                     color: '#93c5fd',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    fontSize: '1rem'
+                    fontSize: isMobile ? '1rem' : '1rem',
+                    padding: isMobile ? '1rem 2rem' : '0.75rem 1.5rem'
                   }}
                 >
                   Continue to menu
@@ -1367,19 +1414,20 @@ const DailyMusicQuiz = () => {
   if (view === 'leaderboard') {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          <div style={{ ...cardStyle, padding: '2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <Crown style={{ width: '4rem', height: '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
-              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>Leaderboard</h2>
+        <div style={mobileContainer}>
+          <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
+            <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+              <Crown style={{ width: isMobile ? '3rem' : '4rem', height: isMobile ? '3rem' : '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white' }}>Leaderboard</h2>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: isMobile ? '1.5rem' : '2rem' }}>
               {leaderboard.map((entry, i) => (
                 <div key={i} style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  padding: '1rem',
+                  alignItems: 'center',
+                  padding: isMobile ? '0.75rem' : '1rem',
                   borderRadius: '0.75rem',
                   background: i === 0 ? 'rgba(245, 158, 11, 0.2)' :
                             i === 1 ? 'rgba(156, 163, 175, 0.2)' :
@@ -1390,15 +1438,16 @@ const DailyMusicQuiz = () => {
                                      i === 2 ? 'rgba(217, 119, 6, 0.3)' :
                                      'rgba(255, 255, 255, 0.2)'}`
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '0.75rem', flex: 1 }}>
                     <div style={{
-                      width: '2rem',
-                      height: '2rem',
+                      width: isMobile ? '1.75rem' : '2rem',
+                      height: isMobile ? '1.75rem' : '2rem',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 'bold',
+                      fontSize: isMobile ? '0.875rem' : '1rem',
                       background: i === 0 ? '#fbbf24' :
                                  i === 1 ? '#9ca3af' :
                                  i === 2 ? '#d97706' :
@@ -1407,33 +1456,37 @@ const DailyMusicQuiz = () => {
                     }}>
                       {i + 1}
                     </div>
-                    <div>
-                      <span style={{ color: 'white', fontWeight: '600' }}>{entry.player_name}</span>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: 'white', fontWeight: '600', fontSize: isMobile ? '0.875rem' : '1rem', marginBottom: '0.25rem' }}>
+                        {entry.player_name}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
                         <span style={{ 
-                          fontSize: '0.75rem', 
-                          padding: '0.125rem 0.5rem', 
+                          fontSize: '0.625rem', 
+                          padding: '0.125rem 0.375rem', 
                           borderRadius: '9999px',
                           background: difficulties[entry.difficulty]?.bgColor || 'rgba(255, 255, 255, 0.1)',
-                          color: difficulties[entry.difficulty]?.color || '#bfdbfe'
+                          color: difficulties[entry.difficulty]?.color || '#bfdbfe',
+                          whiteSpace: 'nowrap'
                         }}>
                           {difficulties[entry.difficulty]?.name || entry.difficulty}
                         </span>
                         <span style={{ 
-                          fontSize: '0.75rem', 
-                          padding: '0.125rem 0.5rem', 
+                          fontSize: '0.625rem', 
+                          padding: '0.125rem 0.375rem', 
                           borderRadius: '9999px',
                           background: categories[entry.category]?.bgColor || 'rgba(255, 255, 255, 0.1)',
-                          color: categories[entry.category]?.color || '#bfdbfe'
+                          color: categories[entry.category]?.color || '#bfdbfe',
+                          whiteSpace: 'nowrap'
                         }}>
-                          {categories[entry.category]?.icon} {categories[entry.category]?.name || entry.category}
+                          {categories[entry.category]?.icon} {isMobile ? categories[entry.category]?.name.split(' ')[0] : categories[entry.category]?.name || entry.category}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold' }}>{entry.score} pts</div>
-                    <div style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>{entry.percentage}%</div>
+                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{entry.score} pts</div>
+                    <div style={{ color: '#bfdbfe', fontSize: '0.75rem' }}>{entry.percentage}%</div>
                   </div>
                 </div>
               ))}
@@ -1445,10 +1498,10 @@ const DailyMusicQuiz = () => {
                 ...buttonStyle,
                 background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
                 color: 'white',
-                padding: '0.75rem 2rem',
+                padding: isMobile ? '1rem 2rem' : '0.75rem 2rem',
                 display: 'block',
                 margin: '0 auto',
-                fontSize: '1rem'
+                fontSize: isMobile ? '1.125rem' : '1rem'
               }}
             >
               Back to Menu
@@ -1463,14 +1516,14 @@ const DailyMusicQuiz = () => {
   if (quizComplete) {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          <div style={{ ...cardStyle, padding: '2rem' }}>
+        <div style={mobileContainer}>
+          <div style={{ ...cardStyle, padding: isMobile ? '1.5rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
             <div style={{ textAlign: 'center' }}>
-              <Trophy style={{ width: '4rem', height: '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
-              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+              <Trophy style={{ width: isMobile ? '3rem' : '4rem', height: isMobile ? '3rem' : '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                 Quiz Complete!
               </h2>
-              <p style={{ fontSize: '1.25rem', color: '#bfdbfe', marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: isMobile ? '1rem' : '1.25rem', color: '#bfdbfe', marginBottom: '1.5rem' }}>
                 {score === currentQuestions.length ? "Perfect! 🎵" : 
                  score >= Math.round(currentQuestions.length * 0.8) ? "Excellent! 🎸" : 
                  score >= Math.round(currentQuestions.length * 0.6) ? "Good job! 🎤" : 
@@ -1480,21 +1533,28 @@ const DailyMusicQuiz = () => {
               <div style={{
                 background: 'rgba(255, 255, 255, 0.2)',
                 borderRadius: '1rem',
-                padding: '1.5rem',
+                padding: isMobile ? '1rem' : '1.5rem',
                 marginBottom: '1.5rem'
               }}>
-                <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: isMobile ? '2rem' : '2.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
                   {Math.round(score * (difficulties[selectedDifficulty]?.pointsMultiplier || 1))} pts
                 </div>
-                <div style={{ color: '#bfdbfe', marginBottom: '0.5rem' }}>
+                <div style={{ color: '#bfdbfe', marginBottom: '0.5rem', fontSize: isMobile ? '0.875rem' : '1rem' }}>
                   {score} / {currentQuestions.length} Correct ({Math.round((score / currentQuestions.length) * 100)}%)
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', fontSize: '0.875rem' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  flexWrap: 'wrap',
+                  gap: isMobile ? '0.5rem' : '1rem', 
+                  fontSize: '0.75rem' 
+                }}>
                   <span style={{ 
                     padding: '0.25rem 0.75rem', 
                     borderRadius: '9999px',
                     background: difficulties[selectedDifficulty]?.bgColor,
-                    color: difficulties[selectedDifficulty]?.color
+                    color: difficulties[selectedDifficulty]?.color,
+                    whiteSpace: 'nowrap'
                   }}>
                     {difficulties[selectedDifficulty]?.name} ({difficulties[selectedDifficulty]?.pointsMultiplier}x)
                   </span>
@@ -1502,7 +1562,8 @@ const DailyMusicQuiz = () => {
                     padding: '0.25rem 0.75rem', 
                     borderRadius: '9999px',
                     background: categories[selectedCategory]?.bgColor,
-                    color: categories[selectedCategory]?.color
+                    color: categories[selectedCategory]?.color,
+                    whiteSpace: 'nowrap'
                   }}>
                     {categories[selectedCategory]?.icon} {categories[selectedCategory]?.name}
                   </span>
@@ -1516,8 +1577,8 @@ const DailyMusicQuiz = () => {
                     ...buttonStyle,
                     background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
                     color: 'white',
-                    padding: '0.75rem 2rem',
-                    fontSize: '1rem'
+                    padding: isMobile ? '1rem 2rem' : '0.75rem 2rem',
+                    fontSize: isMobile ? '1.125rem' : '1rem'
                   }}
                 >
                   View Leaderboard
@@ -1529,8 +1590,8 @@ const DailyMusicQuiz = () => {
                     ...buttonStyle,
                     background: 'linear-gradient(135deg, #6b7280, #4b5563)',
                     color: 'white',
-                    padding: '0.5rem 1.5rem',
-                    fontSize: '1rem'
+                    padding: isMobile ? '1rem 1.5rem' : '0.5rem 1.5rem',
+                    fontSize: isMobile ? '1rem' : '1rem'
                   }}
                 >
                   Play Again
@@ -1547,18 +1608,25 @@ const DailyMusicQuiz = () => {
   if (view === 'quiz' && currentQuestions.length > 0) {
     return (
       <div style={gradientBg}>
-        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          <div style={{ ...cardStyle, padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#bfdbfe' }}>
+        <div style={mobileContainer}>
+          <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: isMobile ? 'flex-start' : 'center', 
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '1rem' : '0',
+              marginBottom: '1.5rem' 
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', color: '#bfdbfe', fontSize: isMobile ? '0.875rem' : '1rem' }}>
                 <span>Question {currentQuestion + 1} of {currentQuestions.length}</span>
                 <span>Score: {score}/{currentQuestion + (showResult ? 1 : 0)}</span>
               </div>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Coins style={{ width: '1.25rem', height: '1.25rem', color: '#fbbf24' }} />
-                  <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{credits}</span>
+                  <Coins style={{ width: isMobile ? '1rem' : '1.25rem', height: isMobile ? '1rem' : '1.25rem', color: '#fbbf24' }} />
+                  <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{credits}</span>
                 </div>
                 
                 <div style={{
@@ -1572,8 +1640,8 @@ const DailyMusicQuiz = () => {
                   color: timeLeft <= 3 ? '#fca5a5' : 
                          timeLeft <= 5 ? '#fcd34d' : '#86efac'
                 }}>
-                  <Clock style={{ width: '1rem', height: '1rem' }} />
-                  <span style={{ fontWeight: 'bold' }}>{timeLeft}s</span>
+                  <Clock style={{ width: isMobile ? '0.875rem' : '1rem', height: isMobile ? '0.875rem' : '1rem' }} />
+                  <span style={{ fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{timeLeft}s</span>
                 </div>
                 
                 {(timeLeft <= 5 && credits > 0 && !showResult) && (
@@ -1582,18 +1650,20 @@ const DailyMusicQuiz = () => {
                     style={{
                       background: 'linear-gradient(135deg, #d97706, #ea580c)',
                       color: 'white',
-                      fontSize: '0.75rem',
+                      fontSize: isMobile ? '0.625rem' : '0.75rem',
                       fontWeight: 'bold',
-                      padding: '0.25rem 0.75rem',
+                      padding: isMobile ? '0.5rem 0.75rem' : '0.25rem 0.75rem',
                       borderRadius: '9999px',
                       border: 'none',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.25rem'
+                      gap: '0.25rem',
+                      touchAction: 'manipulation',
+                      WebkitTapHighlightColor: 'transparent'
                     }}
                   >
-                    <Plus style={{ width: '0.75rem', height: '0.75rem' }} />
+                    <Plus style={{ width: isMobile ? '0.75rem' : '0.75rem', height: isMobile ? '0.75rem' : '0.75rem' }} />
                     +10s
                   </button>
                 )}
@@ -1603,12 +1673,14 @@ const DailyMusicQuiz = () => {
                   style={{
                     background: 'linear-gradient(135deg, #059669, #10b981)',
                     color: 'white',
-                    fontSize: '0.75rem',
+                    fontSize: isMobile ? '0.625rem' : '0.75rem',
                     fontWeight: 'bold',
-                    padding: '0.25rem 0.75rem',
+                    padding: isMobile ? '0.5rem 0.75rem' : '0.25rem 0.75rem',
                     borderRadius: '9999px',
                     border: 'none',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent'
                   }}
                 >
                   Buy
@@ -1619,25 +1691,28 @@ const DailyMusicQuiz = () => {
             <div style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: '1rem',
+              flexWrap: 'wrap',
+              gap: isMobile ? '0.5rem' : '1rem',
               marginBottom: '1.5rem',
-              fontSize: '0.875rem'
+              fontSize: isMobile ? '0.75rem' : '0.875rem'
             }}>
               <span style={{ 
-                padding: '0.5rem 1rem', 
+                padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem', 
                 borderRadius: '9999px',
                 background: difficulties[selectedDifficulty]?.bgColor,
                 color: difficulties[selectedDifficulty]?.color,
-                fontWeight: '600'
+                fontWeight: '600',
+                whiteSpace: 'nowrap'
               }}>
                 {difficulties[selectedDifficulty]?.name} • {difficulties[selectedDifficulty]?.pointsMultiplier}x Points
               </span>
               <span style={{ 
-                padding: '0.5rem 1rem', 
+                padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem', 
                 borderRadius: '9999px',
                 background: categories[selectedCategory]?.bgColor,
                 color: categories[selectedCategory]?.color,
-                fontWeight: '600'
+                fontWeight: '600',
+                whiteSpace: 'nowrap'
               }}>
                 {categories[selectedCategory]?.icon} {categories[selectedCategory]?.name}
               </span>
@@ -1647,20 +1722,26 @@ const DailyMusicQuiz = () => {
               width: '100%', 
               background: 'rgba(255, 255, 255, 0.2)', 
               borderRadius: '9999px', 
-              height: '0.75rem', 
-              marginBottom: '2rem' 
+              height: isMobile ? '0.5rem' : '0.75rem', 
+              marginBottom: isMobile ? '1.5rem' : '2rem' 
             }}>
               <div style={{
                 background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                height: '0.75rem',
+                height: isMobile ? '0.5rem' : '0.75rem',
                 borderRadius: '9999px',
                 width: `${((currentQuestion + (showResult ? 1 : 0)) / currentQuestions.length) * 100}%`,
                 transition: 'all 0.5s ease'
               }} />
             </div>
 
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+              <h2 style={{ 
+                fontSize: isMobile ? '1.125rem' : '1.5rem', 
+                fontWeight: 'bold', 
+                color: 'white', 
+                marginBottom: '1.5rem',
+                lineHeight: isMobile ? '1.4' : '1.3'
+              }}>
                 {currentQuestions[currentQuestion]?.question}
               </h2>
 
@@ -1673,7 +1754,7 @@ const DailyMusicQuiz = () => {
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      padding: '1rem',
+                      padding: isMobile ? '1rem' : '1rem',
                       borderRadius: '0.75rem',
                       border: '2px solid',
                       borderColor: showResult
@@ -1696,17 +1777,20 @@ const DailyMusicQuiz = () => {
                         : 'rgba(255, 255, 255, 0.1)',
                       color: '#ffffff',
                       cursor: showResult ? 'default' : 'pointer',
-                      transition: 'all 0.3s ease',
-                      fontSize: '1rem'
+                      transition: 'all 0.2s ease',
+                      fontSize: isMobile ? '0.875rem' : '1rem',
+                      touchAction: 'manipulation',
+                      WebkitTapHighlightColor: 'transparent',
+                      lineHeight: '1.4'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span>{option}</span>
                       {showResult && option === currentQuestions[currentQuestion].correct && (
-                        <span style={{ color: '#10b981' }}>✓</span>
+                        <span style={{ color: '#10b981', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>✓</span>
                       )}
                       {showResult && option === selectedAnswer && option !== currentQuestions[currentQuestion].correct && (
-                        <span style={{ color: '#ef4444' }}>✗</span>
+                        <span style={{ color: '#ef4444', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>✗</span>
                       )}
                     </div>
                   </button>
@@ -1717,12 +1801,12 @@ const DailyMusicQuiz = () => {
             {showResult && (
               <div style={{
                 marginBottom: '1.5rem',
-                padding: '1rem',
+                padding: isMobile ? '0.75rem' : '1rem',
                 background: 'rgba(255, 255, 255, 0.1)',
                 borderRadius: '0.75rem',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
               }}>
-                <p style={{ color: '#bfdbfe', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
+                <p style={{ color: '#bfdbfe', fontSize: isMobile ? '0.75rem' : '0.875rem', fontStyle: 'italic', margin: 0, lineHeight: '1.4' }}>
                   {currentQuestions[currentQuestion]?.explanation}
                 </p>
               </div>
@@ -1736,15 +1820,15 @@ const DailyMusicQuiz = () => {
                     ...buttonStyle,
                     background: 'linear-gradient(135deg, #059669, #2563eb)',
                     color: 'white',
-                    padding: '0.75rem 2rem',
+                    padding: isMobile ? '1.25rem 2rem' : '0.75rem 2rem',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
                     margin: '0 auto',
-                    fontSize: '1rem'
+                    fontSize: isMobile ? '1.125rem' : '1rem'
                   }}
                 >
-                  <Play style={{ width: '1.25rem', height: '1.25rem' }} />
+                  <Play style={{ width: isMobile ? '1.25rem' : '1.25rem', height: isMobile ? '1.25rem' : '1.25rem' }} />
                   Start Quiz
                 </button>
               ) : !showResult ? (
@@ -1755,8 +1839,8 @@ const DailyMusicQuiz = () => {
                       ...buttonStyle,
                       background: 'linear-gradient(135deg, #dc2626, #ea580c)',
                       color: 'white',
-                      padding: '0.75rem 2rem',
-                      fontSize: '1rem'
+                      padding: isMobile ? '1.25rem 2rem' : '0.75rem 2rem',
+                      fontSize: isMobile ? '1.125rem' : '1rem'
                     }}
                   >
                     Continue
@@ -1767,13 +1851,13 @@ const DailyMusicQuiz = () => {
                     disabled={!selectedAnswer}
                     style={{
                       ...buttonStyle,
-                      padding: '0.75rem 2rem',
+                      padding: isMobile ? '1.25rem 2rem' : '0.75rem 2rem',
                       cursor: selectedAnswer ? 'pointer' : 'not-allowed',
                       background: selectedAnswer
                         ? 'linear-gradient(135deg, #7c3aed, #2563eb)'
                         : '#6b7280',
                       color: selectedAnswer ? 'white' : '#9ca3af',
-                      fontSize: '1rem'
+                      fontSize: isMobile ? '1.125rem' : '1rem'
                     }}
                   >
                     Submit Answer
@@ -1786,8 +1870,8 @@ const DailyMusicQuiz = () => {
                     ...buttonStyle,
                     background: 'linear-gradient(135deg, #059669, #2563eb)',
                     color: 'white',
-                    padding: '0.75rem 2rem',
-                    fontSize: '1rem'
+                    padding: isMobile ? '1.25rem 2rem' : '0.75rem 2rem',
+                    fontSize: isMobile ? '1.125rem' : '1rem'
                   }}
                 >
                   {currentQuestion < currentQuestions.length - 1 ? 'Next Question' : 'View Results'}
@@ -1803,10 +1887,10 @@ const DailyMusicQuiz = () => {
   // Default welcome view
   return (
     <div style={gradientBg}>
-      <div style={{ maxWidth: '32rem', margin: '0 auto', textAlign: 'center', paddingTop: '2rem' }}>
-        <div style={{ ...cardStyle, padding: '2rem' }}>
-          <Music style={{ width: '4rem', height: '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
-          <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
+      <div style={{ ...mobileContainer, textAlign: 'center', paddingTop: isMobile ? '1rem' : '2rem' }}>
+        <div style={{ ...cardStyle, padding: isMobile ? '1.5rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
+          <Music style={{ width: isMobile ? '3rem' : '4rem', height: isMobile ? '3rem' : '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
+          <h2 style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
             Welcome to Daily Music Quiz!
           </h2>
           <button
@@ -1815,8 +1899,8 @@ const DailyMusicQuiz = () => {
               ...buttonStyle,
               background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
               color: 'white',
-              padding: '0.75rem 2rem',
-              fontSize: '1rem'
+              padding: isMobile ? '1rem 2rem' : '0.75rem 2rem',
+              fontSize: isMobile ? '1.125rem' : '1rem'
             }}
           >
             Go to Selection Menu
