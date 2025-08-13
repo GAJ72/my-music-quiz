@@ -756,8 +756,7 @@ const DailyMusicQuiz = () => {
            </div>
 
            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-            
-             {leaderboard.map((entry, i) => (
+              {leaderboard.map((entry, i) => (
                <div key={i} style={{
                  display: 'flex',
                  justifyContent: 'space-between',
