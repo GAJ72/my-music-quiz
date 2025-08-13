@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Trophy, Music, Crown, Users, Clock, Coins, Plus, Star, Zap, Brain } from 'lucide-react';
+import { Play, Trophy, Music, Crown, Users, Clock, Coins, Plus, Star, Zap, Brain, CreditCard, Lock } from 'lucide-react';
 
 const DailyMusicQuiz = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -17,6 +17,15 @@ const DailyMusicQuiz = () => {
   const [view, setView] = useState('selection');
   const [playerName, setPlayerName] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Payment state
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvc, setCvc] = useState('');
+  const [cardName, setCardName] = useState('');
 
   const difficulties = {
     easy: {
@@ -487,6 +496,38 @@ const DailyMusicQuiz = () => {
     { player_name: "JazzLover", score: 4, percentage: 80, difficulty: "easy", category: "classical" }
   ]);
 
+  const creditPackages = [
+    { 
+      id: 'starter',
+      name: "Starter Pack", 
+      credits: 50, 
+      price: 0.99, 
+      color: "green",
+      popular: false,
+      description: "Perfect for casual players"
+    },
+    { 
+      id: 'pro',
+      name: "Pro Pack", 
+      credits: 150, 
+      price: 1.99, 
+      color: "purple",
+      popular: true,
+      description: "Great value for regular players",
+      savings: "33% savings vs Starter"
+    },
+    { 
+      id: 'ultimate',
+      name: "Ultimate Pack", 
+      credits: 500, 
+      price: 4.99, 
+      color: "yellow",
+      popular: false,
+      description: "Best value for quiz masters",
+      savings: "50% savings vs Starter"
+    }
+  ];
+
   const generateQuestions = (category, difficulty) => {
     if (category === 'mixed') {
       const allQuestions = [];
@@ -531,6 +572,79 @@ const DailyMusicQuiz = () => {
       setCredits(credits - 1);
       setTimeLeft(timeLeft + 10);
     }
+  };
+
+  const buyCredits = (packageId) => {
+    const pkg = creditPackages.find(p => p.id === packageId);
+    if (!pkg) return;
+    
+    setSelectedPackage(pkg);
+    setView('payment');
+  };
+
+  const formatCardNumber = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const match = v.match(/\d{4,16}/g);
+    const cardMatch = match && match[0] || '';
+    const parts = [];
+    for (let i = 0, len = cardMatch.length; i < len; i += 4) {
+      parts.push(cardMatch.substring(i, i + 4));
+    }
+    return parts.length ? parts.join(' ') : v;
+  };
+  
+  const formatExpiry = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  const processPayment = async (packageData) => {
+    setPaymentLoading(true);
+    setPaymentError(null);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      if (Math.random() > 0.1) {
+        const newCreditTotal = credits + packageData.credits;
+        setCredits(newCreditTotal);
+        
+        if (currentUser) {
+          const updatedUser = { ...currentUser, credits: newCreditTotal };
+          setCurrentUser(updatedUser);
+        }
+        
+        alert(`🎉 Payment successful! Added ${packageData.credits} credits to your account.`);
+        setView('selection');
+        setSelectedPackage(null);
+        setCardNumber('');
+        setExpiry('');
+        setCvc('');
+        setCardName('');
+        return true;
+      } else {
+        throw new Error('Your card was declined. Please try a different payment method.');
+      }
+    } catch (error) {
+      setPaymentError(error.message);
+      return false;
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!cardNumber || !expiry || !cvc || !cardName) {
+      setPaymentError('Please fill in all payment details');
+      return;
+    }
+    
+    await processPayment(selectedPackage);
   };
 
   const createUser = (name) => {
@@ -642,6 +756,361 @@ const DailyMusicQuiz = () => {
     padding: '1rem'
   };
 
+  // Payment view
+  if (view === 'payment' && selectedPackage) {
+    return (
+      <div style={gradientBg}>
+        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
+          <div style={{ ...cardStyle, padding: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <CreditCard style={{ width: '4rem', height: '4rem', color: '#10b981', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                Complete Purchase
+              </h2>
+              
+              <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                  {selectedPackage.name}
+                </h3>
+                <p style={{ color: '#10b981', fontSize: '1.125rem', margin: '0.25rem 0' }}>
+                  {selectedPackage.credits} Credits
+                </p>
+                <p style={{ fontSize: '0.875rem', color: '#d1d5db', margin: '0.5rem 0' }}>
+                  {selectedPackage.description}
+                </p>
+                {selectedPackage.savings && (
+                  <p style={{ color: '#fcd34d', fontSize: '0.875rem', fontWeight: '600', margin: '0.5rem 0' }}>
+                    {selectedPackage.savings}
+                  </p>
+                )}
+                <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', margin: '0.5rem 0 0' }}>
+                  £{selectedPackage.price}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handlePaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.75rem', padding: '1.5rem' }}>
+                <h3 style={{ color: 'white', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Lock style={{ width: '1.25rem', height: '1.25rem' }} />
+                  Secure Payment Details
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#d1d5db', marginBottom: '0.5rem' }}>
+                      Cardholder Name
+                    </label>
+                    <input
+                      type="text"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      placeholder="John Smith"
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.75rem', 
+                        background: 'white', 
+                        borderRadius: '0.5rem', 
+                        border: '0',
+                        fontSize: '1rem'
+                      }}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#d1d5db', marginBottom: '0.5rem' }}>
+                      Card Number
+                    </label>
+                    <input
+                      type="text"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      placeholder="4242 4242 4242 4242"
+                      maxLength={19}
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.75rem', 
+                        background: 'white', 
+                        borderRadius: '0.5rem', 
+                        border: '0',
+                        fontFamily: 'monospace',
+                        fontSize: '1rem'
+                      }}
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#d1d5db', marginBottom: '0.5rem' }}>
+                        Expiry Date
+                      </label>
+                      <input
+                        type="text"
+                        value={expiry}
+                        onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                        placeholder="MM/YY"
+                        maxLength={5}
+                        style={{ 
+                          width: '100%', 
+                          padding: '0.75rem', 
+                          background: 'white', 
+                          borderRadius: '0.5rem', 
+                          border: '0',
+                          fontFamily: 'monospace',
+                          fontSize: '1rem'
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#d1d5db', marginBottom: '0.5rem' }}>
+                        CVC
+                      </label>
+                      <input
+                        type="text"
+                        value={cvc}
+                        onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').substring(0, 4))}
+                        placeholder="123"
+                        maxLength={4}
+                        style={{ 
+                          width: '100%', 
+                          padding: '0.75rem', 
+                          background: 'white', 
+                          borderRadius: '0.5rem', 
+                          border: '0',
+                          fontFamily: 'monospace',
+                          fontSize: '1rem'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '0.75rem', padding: '1rem' }}>
+                <h4 style={{ color: '#93c5fd', fontWeight: '600', marginBottom: '0.5rem' }}>💳 Test Mode - Use These Cards:</h4>
+                <div style={{ fontSize: '0.875rem', color: '#bfdbfe' }}>
+                  <p style={{ margin: '0.25rem 0' }}>✅ Success: <span style={{ fontFamily: 'monospace' }}>4242 4242 4242 4242</span></p>
+                  <p style={{ margin: '0.25rem 0' }}>❌ Decline: <span style={{ fontFamily: 'monospace' }}>4000 0000 0000 0002</span></p>
+                  <p style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>Use any future expiry date and any CVC</p>
+                </div>
+              </div>
+
+              {paymentError && (
+                <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#fca5a5', padding: '1rem', borderRadius: '0.75rem' }}>
+                  <p style={{ fontWeight: '600', margin: '0 0 0.25rem 0' }}>Payment Failed</p>
+                  <p style={{ fontSize: '0.875rem', margin: 0 }}>{paymentError}</p>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="submit"
+                  disabled={paymentLoading}
+                  style={{
+                    ...buttonStyle,
+                    flex: 1,
+                    padding: '1rem 1.5rem',
+                    background: paymentLoading 
+                      ? '#6b7280'
+                      : 'linear-gradient(135deg, #059669, #2563eb)',
+                    color: paymentLoading ? '#9ca3af' : 'white',
+                    cursor: paymentLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem'
+                  }}
+                >
+                  {paymentLoading ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <div style={{ 
+                        width: '1.25rem', 
+                        height: '1.25rem', 
+                        border: '2px solid #9ca3af', 
+                        borderTop: '2px solid transparent', 
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    `Pay £${selectedPackage.price}`
+                  )}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    setView('store');
+                    setSelectedPackage(null);
+                    setPaymentError(null);
+                  }}
+                  disabled={paymentLoading}
+                  style={{
+                    ...buttonStyle,
+                    padding: '1rem 1.5rem',
+                    background: 'transparent',
+                    color: '#93c5fd',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+              <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', margin: '0.25rem 0' }}>
+                <Lock style={{ width: '1rem', height: '1rem' }} />
+                Secured by 256-bit SSL encryption
+              </p>
+              <p style={{ margin: '0.25rem 0' }}>🔒 Your payment information is encrypted and secure</p>
+            </div>
+          </div>
+        </div>
+
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Credit store view
+  if (view === 'store') {
+    return (
+      <div style={gradientBg}>
+        <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
+          <div style={{ ...cardStyle, padding: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <Coins style={{ width: '4rem', height: '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                Credit Store
+              </h2>
+              <p style={{ color: '#bfdbfe' }}>Buy credits to extend your quiz time</p>
+              {currentUser && (
+                <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#93c5fd' }}>
+                  Welcome back, <span style={{ color: '#a855f7', fontWeight: '600' }}>{currentUser.name}</span>!<br/>
+                  Current Balance: <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{credits} credits</span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
+              {creditPackages.map((pack) => (
+                <div 
+                  key={pack.id} 
+                  style={{
+                    position: 'relative',
+                    background: `linear-gradient(135deg, rgba(${pack.color === 'green' ? '34, 197, 94' : pack.color === 'purple' ? '168, 85, 247' : '245, 158, 11'}, 0.2), rgba(${pack.color === 'green' ? '22, 163, 74' : pack.color === 'purple' ? '147, 51, 234' : '217, 119, 6'}, 0.2))`,
+                    border: `1px solid rgba(${pack.color === 'green' ? '34, 197, 94' : pack.color === 'purple' ? '168, 85, 247' : '245, 158, 11'}, 0.3)`,
+                    borderRadius: '1rem',
+                    padding: '1.5rem',
+                    ...(pack.popular ? { 
+                      boxShadow: '0 0 0 2px rgba(245, 158, 11, 0.5)' 
+                    } : {})
+                  }}
+                >
+                  {pack.popular && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-0.75rem',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: '#fbbf24',
+                      color: 'black',
+                      padding: '0.25rem 1rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.875rem',
+                      fontWeight: 'bold'
+                    }}>
+                      ⭐ MOST POPULAR
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>
+                        {pack.name}
+                      </h3>
+                      <p style={{ 
+                        color: pack.color === 'green' ? '#86efac' : pack.color === 'purple' ? '#c084fc' : '#fcd34d', 
+                        fontSize: '1.125rem', 
+                        fontWeight: '600', 
+                        marginBottom: '0.25rem' 
+                      }}>
+                        {pack.credits} Credits
+                      </p>
+                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                        {pack.description}
+                      </p>
+                      <p style={{ color: '#d1d5db', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                        Each credit = +10 seconds
+                      </p>
+                      {pack.savings && (
+                        <p style={{ color: '#fcd34d', fontSize: '0.875rem', fontWeight: '600' }}>
+                          {pack.savings}
+                        </p>
+                      )}
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '0.75rem' }}>
+                        £{pack.price}
+                      </div>
+                      <button
+                        onClick={() => buyCredits(pack.id)}
+                        style={{
+                          ...buttonStyle,
+                          background: `linear-gradient(135deg, ${pack.color === 'green' ? '#059669, #047857' : pack.color === 'purple' ? '#7c3aed, #6d28d9' : '#d97706, #b45309'})`,
+                          color: 'white',
+                          padding: '0.75rem 1.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          fontSize: '1rem'
+                        }}
+                      >
+                        <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'center', fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Lock style={{ width: '1rem', height: '1rem' }} />
+                <span>Secure payments powered by Stripe</span>
+              </div>
+              <p style={{ margin: '0.25rem 0' }}>🔒 Your payment information is encrypted and secure</p>
+              <p style={{ margin: '0.25rem 0' }}>💳 Supports all major credit cards</p>
+            </div>
+
+            <button 
+              onClick={() => setView('selection')} 
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#93c5fd',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                display: 'block',
+                margin: '0 auto',
+                fontSize: '1rem'
+              }}
+            >
+              Back to Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main selection view
   if (view === 'selection') {
     return (
       <div style={gradientBg}>
@@ -656,6 +1125,12 @@ const DailyMusicQuiz = () => {
             <p style={{ fontSize: '1.25rem', color: '#bfdbfe', marginBottom: '2rem' }}>
               Choose your difficulty and category to start your musical journey
             </p>
+            {currentUser && (
+              <div style={{ marginBottom: '1rem', fontSize: '1rem', color: '#93c5fd' }}>
+                Welcome back, <span style={{ color: '#a855f7', fontWeight: '600' }}>{currentUser.name}</span>!<br/>
+                Credits: <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{credits}</span>
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
@@ -797,12 +1272,26 @@ const DailyMusicQuiz = () => {
             >
               View Leaderboard
             </button>
+            <button 
+              onClick={() => setView('store')} 
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#93c5fd',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              Credit Store
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
+  // Name entry view
   if (view === 'nameEntry') {
     return (
       <div style={gradientBg}>
@@ -874,6 +1363,7 @@ const DailyMusicQuiz = () => {
     );
   }
 
+  // Leaderboard view
   if (view === 'leaderboard') {
     return (
       <div style={gradientBg}>
@@ -969,6 +1459,7 @@ const DailyMusicQuiz = () => {
     );
   }
 
+  // Quiz complete view
   if (quizComplete) {
     return (
       <div style={gradientBg}>
@@ -1052,6 +1543,7 @@ const DailyMusicQuiz = () => {
     );
   }
 
+  // Quiz view
   if (view === 'quiz' && currentQuestions.length > 0) {
     return (
       <div style={gradientBg}>
@@ -1105,6 +1597,22 @@ const DailyMusicQuiz = () => {
                     +10s
                   </button>
                 )}
+                
+                <button
+                  onClick={() => setView('store')}
+                  style={{
+                    background: 'linear-gradient(135deg, #059669, #10b981)',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Buy
+                </button>
               </div>
             </div>
 
@@ -1292,6 +1800,7 @@ const DailyMusicQuiz = () => {
     );
   }
 
+  // Default welcome view
   return (
     <div style={gradientBg}>
       <div style={{ maxWidth: '32rem', margin: '0 auto', textAlign: 'center', paddingTop: '2rem' }}>
