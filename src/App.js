@@ -756,6 +756,7 @@ const DailyMusicQuiz = () => {
            </div>
 
            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+            
              {leaderboard.map((entry, i) => (
                <div key={i} style={{
                  display: 'flex',
@@ -794,7 +795,7 @@ const DailyMusicQuiz = () => {
                    <div style={{ color: 'white', fontWeight: 'bold' }}>{entry.score}/{questions.length}</div>
                    <div style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>{entry.percentage}%</div>
                  </div>
-                 
+
                </div>
              ))}
            </div>
