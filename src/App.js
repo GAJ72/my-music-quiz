@@ -794,6 +794,7 @@ const DailyMusicQuiz = () => {
                    <div style={{ color: 'white', fontWeight: 'bold' }}>{entry.score}/{questions.length}</div>
                    <div style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>{entry.percentage}%</div>
                  </div>
+                 
                </div>
              ))}
            </div>
