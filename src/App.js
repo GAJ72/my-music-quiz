@@ -29,71 +29,71 @@ const DailyMusicQuiz = () => {
   const [cvc, setCvc] = useState('');
   const [cardName, setCardName] = useState('');
 
-  // Quiz questions
+  // Quiz questions - 10 questions total
   const questions = [
-  {
-    question: "Which band released the album 'Abbey Road'?",
-    options: ['The Rolling Stones', 'The Beatles', 'Led Zeppelin', 'Pink Floyd'],
-    correct: 'The Beatles',
-    explanation: "Abbey Road was The Beatles' final studio album, released in 1969."
-  },
-  {
-    question: "Complete these lyrics: 'Is this the real life? Is this just fantasy? Caught in a landslide...'",
-    options: ['No escape from reality', 'Lost in a dream', 'Falling from the sky', 'Time keeps slipping away'],
-    correct: 'No escape from reality',
-    explanation: "These are the opening lines from Queen's 'Bohemian Rhapsody'."
-  },
-  {
-    question: "Who performed the hit song 'Billie Jean'?",
-    options: ['Prince', 'Michael Jackson', 'Stevie Wonder', 'James Brown'],
-    correct: 'Michael Jackson',
-    explanation: "'Billie Jean' was one of Michael Jackson's biggest hits from 'Thriller'."
-  },
-  {
-    question: "How many strings does a standard guitar have?",
-    options: ['4', '5', '6', '7'],
-    correct: '6',
-    explanation: "A standard guitar has 6 strings, tuned E-A-D-G-B-E."
-  },
-  {
-    question: "In which decade was 'Hotel California' released?",
-    options: ['1960s', '1970s', '1980s', '1990s'],
-    correct: '1970s',
-    explanation: "'Hotel California' was released in 1976."
-  },
-  // 🆕 NEW QUESTIONS START HERE
-  {
-    question: "Which instrument is Freddie Mercury famous for playing?",
-    options: ['Guitar', 'Piano', 'Drums', 'Bass'],
-    correct: 'Piano',
-    explanation: "Freddie Mercury was an accomplished pianist and often performed on piano during Queen concerts."
-  },
-  {
-    question: "What does 'BPM' stand for in music?",
-    options: ['Bass Per Minute', 'Beats Per Minute', 'Band Performance Mode', 'Basic Pop Music'],
-    correct: 'Beats Per Minute',
-    explanation: "BPM measures the tempo or speed of music in beats per minute."
-  },
-  {
-    question: "Which city is considered the birthplace of jazz?",
-    options: ['Chicago', 'New York', 'New Orleans', 'Memphis'],
-    correct: 'New Orleans',
-    explanation: "New Orleans is widely recognized as the birthplace of jazz music in the early 20th century."
-  },
-  {
-    question: "Who composed 'The Four Seasons'?",
-    options: ['Mozart', 'Bach', 'Vivaldi', 'Beethoven'],
-    correct: 'Vivaldi',
-    explanation: "Antonio Vivaldi composed 'The Four Seasons' concertos in 1723."
-  },
-  {
-    question: "Which band sang 'Stairway to Heaven'?",
-    options: ['Pink Floyd', 'Led Zeppelin', 'Deep Purple', 'Black Sabbath'],
-    correct: 'Led Zeppelin',
-    explanation: "Led Zeppelin's 'Stairway to Heaven' is often considered one of the greatest rock songs of all time."
-  }
-];
+    {
+      question: "Which band released the album 'Abbey Road'?",
+      options: ['The Rolling Stones', 'The Beatles', 'Led Zeppelin', 'Pink Floyd'],
+      correct: 'The Beatles',
+      explanation: "Abbey Road was The Beatles' final studio album, released in 1969."
+    },
+    {
+      question: "Complete these lyrics: 'Is this the real life? Is this just fantasy? Caught in a landslide...'",
+      options: ['No escape from reality', 'Lost in a dream', 'Falling from the sky', 'Time keeps slipping away'],
+      correct: 'No escape from reality',
+      explanation: "These are the opening lines from Queen's 'Bohemian Rhapsody'."
+    },
+    {
+      question: "Who performed the hit song 'Billie Jean'?",
+      options: ['Prince', 'Michael Jackson', 'Stevie Wonder', 'James Brown'],
+      correct: 'Michael Jackson',
+      explanation: "'Billie Jean' was one of Michael Jackson's biggest hits from 'Thriller'."
+    },
+    {
+      question: "How many strings does a standard guitar have?",
+      options: ['4', '5', '6', '7'],
+      correct: '6',
+      explanation: "A standard guitar has 6 strings, tuned E-A-D-G-B-E."
+    },
+    {
+      question: "In which decade was 'Hotel California' released?",
+      options: ['1960s', '1970s', '1980s', '1990s'],
+      correct: '1970s',
+      explanation: "'Hotel California' was released in 1976."
+    },
+    {
+      question: "Which instrument is Freddie Mercury famous for playing?",
+      options: ['Guitar', 'Piano', 'Drums', 'Bass'],
+      correct: 'Piano',
+      explanation: "Freddie Mercury was an accomplished pianist and often performed on piano during Queen concerts."
+    },
+    {
+      question: "What does 'BPM' stand for in music?",
+      options: ['Bass Per Minute', 'Beats Per Minute', 'Band Performance Mode', 'Basic Pop Music'],
+      correct: 'Beats Per Minute',
+      explanation: "BPM measures the tempo or speed of music in beats per minute."
+    },
+    {
+      question: "Which city is considered the birthplace of jazz?",
+      options: ['Chicago', 'New York', 'New Orleans', 'Memphis'],
+      correct: 'New Orleans',
+      explanation: "New Orleans is widely recognized as the birthplace of jazz music in the early 20th century."
+    },
+    {
+      question: "Who composed 'The Four Seasons'?",
+      options: ['Mozart', 'Bach', 'Vivaldi', 'Beethoven'],
+      correct: 'Vivaldi',
+      explanation: "Antonio Vivaldi composed 'The Four Seasons' concertos in 1723."
+    },
+    {
+      question: "Which band sang 'Stairway to Heaven'?",
+      options: ['Pink Floyd', 'Led Zeppelin', 'Deep Purple', 'Black Sabbath'],
+      correct: 'Led Zeppelin',
+      explanation: "Led Zeppelin's 'Stairway to Heaven' is often considered one of the greatest rock songs of all time."
+    }
+  ];
 
+  // Updated leaderboard with scores out of 10
   const [leaderboard, setLeaderboard] = useState([
     { player_name: "MusicMaster", score: 10, percentage: 100 },
     { player_name: "RockFan92", score: 8, percentage: 80 },
@@ -699,50 +699,50 @@ const DailyMusicQuiz = () => {
                           background: `linear-gradient(135deg, ${pack.color === 'green' ? '#059669, #047857' : pack.color === 'purple' ? '#7c3aed, #6d28d9' : '#d97706, #b45309'})`,
                           color: 'white',
                           padding: '0.75rem 1.5rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          fontSize: '1rem'
-                        }}
-                      >
-                        <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
-                        Buy Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                         display: 'flex',
+                         alignItems: 'center',
+                         gap: '0.5rem',
+                         fontSize: '1rem'
+                       }}
+                     >
+                       <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
+                       Buy Now
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             ))}
+           </div>
 
-            <div style={{ textAlign: 'center', fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <Lock style={{ width: '1rem', height: '1rem' }} />
-                <span>Secure payments powered by Stripe</span>
-              </div>
-              <p style={{ margin: '0.25rem 0' }}>🔒 Your payment information is encrypted and secure</p>
-              <p style={{ margin: '0.25rem 0' }}>💳 Supports all major credit cards</p>
-            </div>
+           <div style={{ textAlign: 'center', fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
+             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+               <Lock style={{ width: '1rem', height: '1rem' }} />
+               <span>Secure payments powered by Stripe</span>
+             </div>
+             <p style={{ margin: '0.25rem 0' }}>🔒 Your payment information is encrypted and secure</p>
+             <p style={{ margin: '0.25rem 0' }}>💳 Supports all major credit cards</p>
+           </div>
 
-            <button 
-              onClick={() => setView('quiz')} 
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                display: 'block',
-                margin: '0 auto',
-                fontSize: '1rem'
-              }}
-            >
-              Back to Quiz
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-    }
+           <button 
+             onClick={() => setView('quiz')} 
+             style={{
+               background: 'transparent',
+               border: 'none',
+               color: '#93c5fd',
+               textDecoration: 'underline',
+               cursor: 'pointer',
+               display: 'block',
+               margin: '0 auto',
+               fontSize: '1rem'
+             }}
+           >
+             Back to Quiz
+           </button>
+         </div>
+       </div>
+     </div>
+   );
+ }
 
  // Leaderboard View
  if (view === 'leaderboard') {
@@ -790,10 +790,10 @@ const DailyMusicQuiz = () => {
                    </div>
                    <span style={{ color: 'white', fontWeight: '600' }}>{entry.player_name}</span>
                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                  <div style={{ color: 'white', fontWeight: 'bold' }}>{entry.score}/{questions.length}</div>
-                  <div style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>{entry.percentage}%</div>
-                </div>
+                 <div style={{ textAlign: 'right' }}>
+                   <div style={{ color: 'white', fontWeight: 'bold' }}>{entry.score}/{questions.length}</div>
+                   <div style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>{entry.percentage}%</div>
+                 </div>
                </div>
              ))}
            </div>
@@ -831,8 +831,9 @@ const DailyMusicQuiz = () => {
              </h2>
              <p style={{ fontSize: '1.25rem', color: '#bfdbfe', marginBottom: '1.5rem' }}>
                {score === questions.length ? "Perfect! 🎵" : 
-                score >= 4 ? "Excellent! 🎸" : 
-                score >= 3 ? "Good job! 🎤" : "Keep practicing! 🎧"}
+                score >= 8 ? "Excellent! 🎸" : 
+                score >= 6 ? "Good job! 🎤" : 
+                score >= 4 ? "Not bad! 🎧" : "Keep practicing! 🎼"}
              </p>
              
              <div style={{
@@ -847,6 +848,32 @@ const DailyMusicQuiz = () => {
                <div style={{ color: '#bfdbfe' }}>
                  {Math.round((score / questions.length) * 100)}% Correct
                </div>
+             </div>
+
+             <div style={{ textAlign: 'left', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '1rem', padding: '1rem', marginBottom: '1.5rem', maxHeight: '16rem', overflowY: 'auto' }}>
+               <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'white', marginBottom: '1rem' }}>Review Your Answers:</h3>
+               {userAnswers.map((answer, index) => (
+                 <div key={index} style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: index < userAnswers.length - 1 ? '1px solid rgba(255, 255, 255, 0.2)' : 'none' }}>
+                   <p style={{ color: 'white', fontWeight: '500', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                     Q{index + 1}: {answer.question}
+                   </p>
+                   <p style={{ 
+                     fontSize: '0.875rem', 
+                     marginBottom: '0.25rem',
+                     color: answer.isCorrect ? '#86efac' : '#fca5a5'
+                   }}>
+                     Your answer: {answer.selected} {answer.isCorrect ? '✓' : '✗'}
+                   </p>
+                   {!answer.isCorrect && (
+                     <p style={{ color: '#86efac', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                       Correct: {answer.correct}
+                     </p>
+                   )}
+                   <p style={{ color: '#bfdbfe', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                     {answer.explanation}
+                   </p>
+                 </div>
+               ))}
              </div>
 
              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
