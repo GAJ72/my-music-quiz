@@ -1,4 +1,4 @@
-<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+ <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#bfdbfe' }}>
              <span>Question {currentQuestion + 1} of {currentQuestions.length}</span>
              <span>Score: {score}/{currentQuestion + (showResult ? 1 : 0)}</span>
