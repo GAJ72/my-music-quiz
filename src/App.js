@@ -12,11 +12,15 @@ const DailyMusicQuiz = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentQuestions, setCurrentQuestions] = useState([]);
   const [timeLeft, setTimeLeft] = useState(10);
-  const [credits, setCredits] = useState(3);
+  const [freeCredits, setFreeCredits] = useState(3);
+  const [purchasedCredits, setPurchasedCredits] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [view, setView] = useState('selection');
   const [playerName, setPlayerName] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Calculate total credits available
+  const totalCredits = freeCredits + purchasedCredits;
 
   // Payment state
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -26,6 +30,40 @@ const DailyMusicQuiz = () => {
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
   const [cardName, setCardName] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'apple', 'google'
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  // Check for Apple Pay and Google Pay availability
+  const [applePayAvailable, setApplePayAvailable] = useState(false);
+  const [googlePayAvailable, setGooglePayAvailable] = useState(false);
+
+  useEffect(() => {
+    // Check Apple Pay availability
+    if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
+      setApplePayAvailable(true);
+    }
+    
+    // Check Google Pay availability
+    if (window.google && window.google.payments) {
+      const paymentsClient = new google.payments.api.PaymentsClient({
+        environment: 'TEST' // Change to 'PRODUCTION' for live
+      });
+      
+      paymentsClient.isReadyToPay({
+        allowedPaymentMethods: [{
+          type: 'CARD',
+          parameters: {
+            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+            allowedCardNetworks: ['MASTERCARD', 'VISA']
+          }
+        }]
+      }).then(response => {
+        if (response.result) {
+          setGooglePayAvailable(true);
+        }
+      }).catch(console.error);
+    }
+  }, []);
 
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
@@ -581,8 +619,13 @@ const DailyMusicQuiz = () => {
   };
 
   const buyExtraTime = () => {
-    if (credits > 0) {
-      setCredits(credits - 1);
+    if (totalCredits > 0) {
+      // Use purchased credits first, then free credits
+      if (purchasedCredits > 0) {
+        setPurchasedCredits(purchasedCredits - 1);
+      } else {
+        setFreeCredits(freeCredits - 1);
+      }
       setTimeLeft(timeLeft + 10);
     }
   };
@@ -614,19 +657,34 @@ const DailyMusicQuiz = () => {
     return v;
   };
 
-  const processPayment = async (packageData) => {
+  const processPayment = async (packageData, method = 'card') => {
     setPaymentLoading(true);
     setPaymentError(null);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      let paymentSuccess = false;
       
-      if (Math.random() > 0.1) {
-        const newCreditTotal = credits + packageData.credits;
-        setCredits(newCreditTotal);
+      if (method === 'apple') {
+        paymentSuccess = await processApplePay(packageData);
+      } else if (method === 'google') {
+        paymentSuccess = await processGooglePay(packageData);
+      } else {
+        // Traditional card payment
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        paymentSuccess = Math.random() > 0.1; // 90% success rate for demo
+      }
+      
+      if (paymentSuccess) {
+        // Add purchased credits to the purchased credits balance
+        const newPurchasedCredits = purchasedCredits + packageData.credits;
+        setPurchasedCredits(newPurchasedCredits);
         
         if (currentUser) {
-          const updatedUser = { ...currentUser, credits: newCreditTotal };
+          const updatedUser = { 
+            ...currentUser, 
+            purchasedCredits: newPurchasedCredits,
+            freeCredits: freeCredits
+          };
           setCurrentUser(updatedUser);
         }
         
@@ -637,9 +695,10 @@ const DailyMusicQuiz = () => {
         setExpiry('');
         setCvc('');
         setCardName('');
+        setPaymentMethod('card');
         return true;
       } else {
-        throw new Error('Your card was declined. Please try a different payment method.');
+        throw new Error('Your payment was declined. Please try a different payment method.');
       }
     } catch (error) {
       setPaymentError(error.message);
@@ -647,6 +706,111 @@ const DailyMusicQuiz = () => {
     } finally {
       setPaymentLoading(false);
     }
+  };
+
+  const processApplePay = async (packageData) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const request = {
+          countryCode: 'GB',
+          currencyCode: 'GBP',
+          supportedNetworks: ['visa', 'masterCard', 'amex'],
+          merchantCapabilities: ['supports3DS'],
+          total: {
+            label: `${packageData.name} - ${packageData.credits} Credits`,
+            amount: packageData.price.toString()
+          }
+        };
+
+        const session = new ApplePaySession(3, request);
+        
+        session.onvalidatemerchant = (event) => {
+          // In real implementation, validate with your server
+          // This is a mock for demo purposes
+          setTimeout(() => {
+            try {
+              session.completeMerchantValidation({
+                merchantSession: 'mock_session' // This would come from your server
+              });
+            } catch (e) {
+              session.abort();
+              reject(new Error('Apple Pay validation failed'));
+            }
+          }, 1000);
+        };
+
+        session.onpaymentauthorized = (event) => {
+          // Process payment with your backend
+          // This is a mock success for demo
+          const result = {
+            status: ApplePaySession.STATUS_SUCCESS
+          };
+          session.completePayment(result);
+          resolve(true);
+        };
+
+        session.oncancel = () => {
+          reject(new Error('Apple Pay cancelled'));
+        };
+
+        session.begin();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  const processGooglePay = async (packageData) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const paymentsClient = new google.payments.api.PaymentsClient({
+          environment: 'TEST' // Change to 'PRODUCTION' for live
+        });
+
+        const paymentDataRequest = {
+          apiVersion: 2,
+          apiVersionMinor: 0,
+          allowedPaymentMethods: [{
+            type: 'CARD',
+            parameters: {
+              allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+              allowedCardNetworks: ['MASTERCARD', 'VISA']
+            },
+            tokenizationSpecification: {
+              type: 'PAYMENT_GATEWAY',
+              parameters: {
+                gateway: 'stripe', // Your payment processor
+                gatewayMerchantId: 'your_stripe_merchant_id'
+              }
+            }
+          }],
+          transactionInfo: {
+            totalPriceStatus: 'FINAL',
+            totalPrice: packageData.price.toString(),
+            currencyCode: 'GBP'
+          },
+          merchantInfo: {
+            merchantName: 'Daily Music Quiz'
+          }
+        };
+
+        paymentsClient.loadPaymentData(paymentDataRequest)
+          .then(paymentData => {
+            // Process payment with your backend
+            // This is a mock success for demo
+            resolve(true);
+          })
+          .catch(error => {
+            if (error.statusCode === 'CANCELED') {
+              reject(new Error('Google Pay cancelled'));
+            } else {
+              reject(new Error('Google Pay failed'));
+            }
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   const handlePaymentSubmit = async (e) => {
@@ -657,12 +821,61 @@ const DailyMusicQuiz = () => {
       return;
     }
     
-    await processPayment(selectedPackage);
+    await processPayment(selectedPackage, 'card');
+  };
+
+  const handleApplePay = async () => {
+    await processPayment(selectedPackage, 'apple');
+  };
+
+  const handleGooglePay = async () => {
+    await processPayment(selectedPackage, 'google');
+  };
+
+  const handleExitGame = () => {
+    if (view === 'quiz' && !quizComplete) {
+      // Show confirmation if user is in middle of quiz
+      setShowExitConfirm(true);
+    } else {
+      // Direct exit if not in active quiz
+      exitToMenu();
+    }
+  };
+
+  const confirmExit = () => {
+    setShowExitConfirm(false);
+    exitToMenu();
+  };
+
+  const cancelExit = () => {
+    setShowExitConfirm(false);
+  };
+
+  const exitToMenu = () => {
+    // Reset quiz state but preserve user data and credits
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer('');
+    setShowResult(false);
+    setQuizComplete(false);
+    setUserAnswers([]);
+    setTimeLeft(10);
+    setIsTimerActive(false);
+    setSelectedDifficulty('');
+    setSelectedCategory('');
+    setCurrentQuestions([]);
+    setShowExitConfirm(false);
+    setView('selection');
   };
 
   const createUser = (name) => {
     if (!name || !name.trim()) return;
-    const user = { name: name.trim(), credits: 3, bestScore: 0 };
+    const user = { 
+      name: name.trim(), 
+      freeCredits: 3, 
+      purchasedCredits: 0,
+      bestScore: 0 
+    };
     setCurrentUser(user);
     setPlayerName(name.trim());
     setView('selection');
@@ -811,6 +1024,71 @@ const DailyMusicQuiz = () => {
                 <p style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 'bold', color: 'white', margin: '0.5rem 0 0' }}>
                   £{selectedPackage.price}
                 </p>
+              </div>
+
+              {/* Quick Payment Options */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ color: 'white', fontSize: isMobile ? '1rem' : '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+                  Quick Payment
+                </h3>
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', justifyContent: 'center' }}>
+                  {applePayAvailable && (
+                    <button
+                      onClick={handleApplePay}
+                      disabled={paymentLoading}
+                      style={{
+                        ...buttonStyle,
+                        background: '#000000',
+                        color: 'white',
+                        padding: isMobile ? '1rem 2rem' : '0.875rem 1.5rem',
+                        fontSize: isMobile ? '1rem' : '0.875rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        minWidth: isMobile ? '100%' : '140px'
+                      }}
+                    >
+                      <span style={{ fontSize: '1.25rem' }}>🍎</span>
+                      Pay
+                    </button>
+                  )}
+                  
+                  {googlePayAvailable && (
+                    <button
+                      onClick={handleGooglePay}
+                      disabled={paymentLoading}
+                      style={{
+                        ...buttonStyle,
+                        background: '#4285f4',
+                        color: 'white',
+                        padding: isMobile ? '1rem 2rem' : '0.875rem 1.5rem',
+                        fontSize: isMobile ? '1rem' : '0.875rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        minWidth: isMobile ? '100%' : '140px'
+                      }}
+                    >
+                      <span style={{ fontWeight: 'bold' }}>G</span>
+                      Pay
+                    </button>
+                  )}
+                </div>
+                
+                {(applePayAvailable || googlePayAvailable) && (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    margin: '1.5rem 0', 
+                    gap: '1rem' 
+                  }}>
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.2)' }}></div>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>or pay with card</span>
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.2)' }}></div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1003,6 +1281,10 @@ const DailyMusicQuiz = () => {
             100% { transform: rotate(360deg); }
           }
         `}</style>
+        
+        {/* Include Apple Pay and Google Pay scripts */}
+        <script src="https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js"></script>
+        <script src="https://pay.google.com/gp/p/js/pay.js" async></script>
       </div>
     );
   }
@@ -1022,7 +1304,23 @@ const DailyMusicQuiz = () => {
               {currentUser && (
                 <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#93c5fd' }}>
                   Welcome back, <span style={{ color: '#a855f7', fontWeight: '600' }}>{currentUser.name}</span>!<br/>
-                  Current Balance: <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{credits} credits</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>{freeCredits}</span>
+                      <span style={{ color: '#93c5fd', fontSize: '0.75rem' }}>free</span>
+                    </div>
+                    <span style={{ color: '#93c5fd' }}>+</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{purchasedCredits}</span>
+                      <span style={{ color: '#93c5fd', fontSize: '0.75rem' }}>purchased</span>
+                    </div>
+                    <span style={{ color: '#93c5fd' }}>=</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <Coins style={{ width: '1rem', height: '1rem', color: '#fbbf24' }} />
+                      <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{totalCredits}</span>
+                      <span style={{ color: '#93c5fd', fontSize: '0.75rem' }}>total</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1158,7 +1456,39 @@ const DailyMusicQuiz = () => {
             {currentUser && (
               <div style={{ marginBottom: '1rem', fontSize: isMobile ? '0.875rem' : '1rem', color: '#93c5fd' }}>
                 Welcome back, <span style={{ color: '#a855f7', fontWeight: '600' }}>{currentUser.name}</span>!<br/>
-                Credits: <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{credits}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '0.5rem' : '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span style={{ color: '#10b981', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{freeCredits}</span>
+                    <span style={{ color: '#93c5fd', fontSize: '0.75rem' }}>free</span>
+                  </div>
+                  <span style={{ color: '#93c5fd' }}>+</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{purchasedCredits}</span>
+                    <span style={{ color: '#93c5fd', fontSize: '0.75rem' }}>purchased</span>
+                  </div>
+                  <span style={{ color: '#93c5fd' }}>=</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Coins style={{ width: isMobile ? '0.875rem' : '1rem', height: isMobile ? '0.875rem' : '1rem', color: '#fbbf24' }} />
+                    <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{totalCredits}</span>
+                    <span style={{ color: '#93c5fd', fontSize: '0.75rem' }}>total</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Show welcome back message if user just exited a quiz */}
+            {userAnswers.length > 0 && (
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.1)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                marginBottom: '1rem',
+                fontSize: isMobile ? '0.875rem' : '1rem'
+              }}>
+                <p style={{ color: '#93c5fd', margin: 0 }}>
+                  👋 Welcome back! Ready for another musical challenge?
+                </p>
               </div>
             )}
           </div>
@@ -1610,6 +1940,64 @@ const DailyMusicQuiz = () => {
       <div style={gradientBg}>
         <div style={mobileContainer}>
           <div style={{ ...cardStyle, padding: isMobile ? '1rem' : '2rem', margin: isMobile ? '0.5rem' : '0' }}>
+            {/* Exit Confirmation Modal */}
+            {showExitConfirm && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                padding: '1rem'
+              }}>
+                <div style={{
+                  ...cardStyle,
+                  padding: isMobile ? '1.5rem' : '2rem',
+                  maxWidth: '400px',
+                  width: '100%',
+                  textAlign: 'center'
+                }}>
+                  <h3 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
+                    Exit Quiz?
+                  </h3>
+                  <p style={{ color: '#bfdbfe', marginBottom: '1.5rem', fontSize: isMobile ? '0.875rem' : '1rem' }}>
+                    Are you sure you want to exit? Your progress will be lost and you won't get your credits back.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                    <button
+                      onClick={confirmExit}
+                      style={{
+                        ...buttonStyle,
+                        background: 'linear-gradient(135deg, #dc2626, #ef4444)',
+                        color: 'white',
+                        padding: isMobile ? '0.875rem 1.5rem' : '0.75rem 1.25rem',
+                        fontSize: isMobile ? '1rem' : '0.875rem'
+                      }}
+                    >
+                      Yes, Exit
+                    </button>
+                    <button
+                      onClick={cancelExit}
+                      style={{
+                        ...buttonStyle,
+                        background: 'linear-gradient(135deg, #059669, #10b981)',
+                        color: 'white',
+                        padding: isMobile ? '0.875rem 1.5rem' : '0.75rem 1.25rem',
+                        fontSize: isMobile ? '1rem' : '0.875rem'
+                      }}
+                    >
+                      Continue Quiz
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
@@ -1619,6 +2007,24 @@ const DailyMusicQuiz = () => {
               marginBottom: '1.5rem' 
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.75rem' : '1rem', color: '#bfdbfe', fontSize: isMobile ? '0.875rem' : '1rem' }}>
+                <button
+                  onClick={handleExitGame}
+                  style={{
+                    ...buttonStyle,
+                    background: 'transparent',
+                    color: '#ef4444',
+                    padding: '0.5rem',
+                    fontSize: isMobile ? '1.25rem' : '1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '0.5rem'
+                  }}
+                  title="Exit Quiz"
+                >
+                  ✕
+                </button>
                 <span>Question {currentQuestion + 1} of {currentQuestions.length}</span>
                 <span>Score: {score}/{currentQuestion + (showResult ? 1 : 0)}</span>
               </div>
@@ -1626,7 +2032,12 @@ const DailyMusicQuiz = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Coins style={{ width: isMobile ? '1rem' : '1.25rem', height: isMobile ? '1rem' : '1.25rem', color: '#fbbf24' }} />
-                  <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{credits}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{totalCredits}</span>
+                    <span style={{ color: '#93c5fd', fontSize: '0.625rem' }}>
+                      ({freeCredits}F+{purchasedCredits}P)
+                    </span>
+                  </div>
                 </div>
                 
                 <div style={{
@@ -1644,7 +2055,7 @@ const DailyMusicQuiz = () => {
                   <span style={{ fontWeight: 'bold', fontSize: isMobile ? '0.875rem' : '1rem' }}>{timeLeft}s</span>
                 </div>
                 
-                {(timeLeft <= 5 && credits > 0 && !showResult) && (
+                {(timeLeft <= 5 && totalCredits > 0 && !showResult) && (
                   <button
                     onClick={buyExtraTime}
                     style={{
