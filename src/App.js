@@ -1,43 +1,23 @@
-// Additional state and features
-  const [leaderboard, setLeaderboard] = useState([
-    { player_name: "MusicMaster", score: 10, percentage: 100, difficulty: "hard", category: "rock" },
-    { player_name: "RockFan92", score: 6, percentage: 80, difficulty: "medium", category: "rock" },
-    { player_name: "JazzLover", score: 4, percentage: 80, difficulty: "easy", category: "classical" }
-  ]);import React, { useState, useEffect } from 'react';
-import { Play, RotateCcw, Trophy, Calendar, Music, Crown, Users, Clock, Coins, Plus, CreditCard, Lock, Star, Zap, Brain } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, Trophy, Music, Crown, Users, Clock, Coins, Plus, Star, Zap, Brain } from 'lucide-react';
 
 const DailyMusicQuiz = () => {
-  // Core quiz state
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [quizComplete, setQuizComplete] = useState(false);
   const [userAnswers, setUserAnswers] = useState([]);
-  
-  // New state for difficulty and category
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentQuestions, setCurrentQuestions] = useState([]);
-  
-  // Timer and credits
   const [timeLeft, setTimeLeft] = useState(10);
   const [credits, setCredits] = useState(3);
   const [isTimerActive, setIsTimerActive] = useState(false);
-  
-  // UI and user state - START WITH SELECTION
   const [view, setView] = useState('selection');
   const [playerName, setPlayerName] = useState('');
-  // Payment state
-  const [selectedPackage, setSelectedPackage] = useState(null);
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentError, setPaymentError] = useState(null);
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvc, setCvc] = useState('');
-  const [cardName, setCardName] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Difficulty levels
   const difficulties = {
     easy: {
       name: "Easy",
@@ -47,9 +27,782 @@ const DailyMusicQuiz = () => {
       timer: 15,
       pointsMultiplier: 1,
       description: "Perfect for beginners • 15 seconds per question"
+    },
+    medium: {
+      name: "Medium", 
+      icon: Zap,
+      color: "#f59e0b",
+      bgColor: "rgba(245, 158, 11, 0.2)",
+      timer: 10,
+      pointsMultiplier: 1.5,
+      description: "For music enthusiasts • 10 seconds per question"
+    },
+    hard: {
+      name: "Hard",
+      icon: Brain,
+      color: "#ef4444", 
+      bgColor: "rgba(239, 68, 68, 0.2)",
+      timer: 7,
+      pointsMultiplier: 2,
+      description: "Expert level challenge • 7 seconds per question"
     }
+  };
 
-  // Name Entry View
+  const categories = {
+    rock: {
+      name: "Rock & Metal",
+      icon: "🎸",
+      color: "#dc2626",
+      bgColor: "rgba(220, 38, 38, 0.2)",
+      description: "Classic rock, metal, and alternative"
+    },
+    pop: {
+      name: "Pop & Charts",
+      icon: "⭐",
+      color: "#ec4899", 
+      bgColor: "rgba(236, 72, 153, 0.2)",
+      description: "Chart toppers and pop classics"
+    },
+    hiphop: {
+      name: "Hip-Hop & R&B",
+      icon: "🎤",
+      color: "#8b5cf6",
+      bgColor: "rgba(139, 92, 246, 0.2)",
+      description: "Rap, hip-hop, and R&B hits"
+    },
+    classical: {
+      name: "Classical & Jazz", 
+      icon: "🎼",
+      color: "#059669",
+      bgColor: "rgba(5, 150, 105, 0.2)",
+      description: "Classical masterpieces and jazz standards"
+    },
+    mixed: {
+      name: "Mixed Genres",
+      icon: "🎵", 
+      color: "#3b82f6",
+      bgColor: "rgba(59, 130, 246, 0.2)",
+      description: "A bit of everything"
+    }
+  };
+
+  const questionDatabase = {
+    rock: {
+      easy: [
+        {
+          question: "Which band released the album 'Abbey Road'?",
+          options: ['The Rolling Stones', 'The Beatles', 'Led Zeppelin', 'Pink Floyd'],
+          correct: 'The Beatles',
+          explanation: "Abbey Road was The Beatles' final studio album, released in 1969."
+        },
+        {
+          question: "Who is the lead singer of Queen?",
+          options: ['David Bowie', 'Freddie Mercury', 'Mick Jagger', 'Robert Plant'],
+          correct: 'Freddie Mercury',
+          explanation: "Freddie Mercury was Queen's iconic lead vocalist and frontman."
+        },
+        {
+          question: "How many strings does a standard guitar have?",
+          options: ['4', '5', '6', '7'],
+          correct: '6',
+          explanation: "A standard guitar has 6 strings, tuned E-A-D-G-B-E."
+        },
+        {
+          question: "Which band performed 'Stairway to Heaven'?",
+          options: ['Deep Purple', 'Black Sabbath', 'Led Zeppelin', 'Pink Floyd'],
+          correct: 'Led Zeppelin',
+          explanation: "'Stairway to Heaven' is Led Zeppelin's most famous song from 1971."
+        },
+        {
+          question: "Which instrument is Keith Moon famous for playing?",
+          options: ['Guitar', 'Bass', 'Drums', 'Keyboard'],
+          correct: 'Drums',
+          explanation: "Keith Moon was the explosive drummer for The Who."
+        }
+      ],
+      medium: [
+        {
+          question: "What year was 'Dark Side of the Moon' released?",
+          options: ['1971', '1973', '1975', '1977'],
+          correct: '1973',
+          explanation: "Pink Floyd's 'Dark Side of the Moon' was released in 1973."
+        },
+        {
+          question: "Which guitarist is known as 'Slowhand'?",
+          options: ['Jimmy Page', 'Eric Clapton', 'Jeff Beck', 'Keith Richards'],
+          correct: 'Eric Clapton',
+          explanation: "Eric Clapton earned the nickname 'Slowhand' early in his career."
+        },
+        {
+          question: "What does 'AC/DC' stand for?",
+          options: ['Alternating Current/Direct Current', 'Australian Club', 'After Christ', 'Nothing specific'],
+          correct: 'Alternating Current/Direct Current',
+          explanation: "AC/DC is named after the electrical term."
+        },
+        {
+          question: "Which Black Sabbath song is considered the first heavy metal song?",
+          options: ['Iron Man', 'Paranoid', 'Black Sabbath', 'War Pigs'],
+          correct: 'Black Sabbath',
+          explanation: "The song 'Black Sabbath' from 1970 is often cited as the first true heavy metal song."
+        },
+        {
+          question: "Who replaced Syd Barrett in Pink Floyd?",
+          options: ['Roger Waters', 'Nick Mason', 'David Gilmour', 'Richard Wright'],
+          correct: 'David Gilmour',
+          explanation: "David Gilmour joined Pink Floyd in 1968."
+        }
+      ],
+      hard: [
+        {
+          question: "What was the original name of Led Zeppelin?",
+          options: ['The New Yardbirds', 'Zeppelin', 'The Heavy Metal Kids', 'Band of Joy'],
+          correct: 'The New Yardbirds',
+          explanation: "Led Zeppelin was originally called The New Yardbirds."
+        },
+        {
+          question: "Which album features 'Shine On You Crazy Diamond'?",
+          options: ['The Wall', 'Animals', 'Wish You Were Here', 'Meddle'],
+          correct: 'Wish You Were Here',
+          explanation: "'Shine On You Crazy Diamond' is on 'Wish You Were Here'."
+        },
+        {
+          question: "What tuning does Tony Iommi primarily use?",
+          options: ['Standard E', 'Drop D', 'C# Standard', 'Open G'],
+          correct: 'C# Standard',
+          explanation: "Tony Iommi often used C# standard tuning."
+        },
+        {
+          question: "Which producer worked on 'Led Zeppelin IV'?",
+          options: ['George Martin', 'Andy Johns', 'Jimmy Page', 'Glyn Johns'],
+          correct: 'Andy Johns',
+          explanation: "Andy Johns engineered several Led Zeppelin albums."
+        },
+        {
+          question: "What was the last song John Bonham recorded?",
+          options: ['Kashmir', 'In the Evening', 'All My Love', "I'm Gonna Crawl"],
+          correct: "I'm Gonna Crawl",
+          explanation: "'I'm Gonna Crawl' was the last song Bonham recorded."
+        }
+      ]
+    },
+    pop: {
+      easy: [
+        {
+          question: "Who performed 'Billie Jean'?",
+          options: ['Prince', 'Michael Jackson', 'Stevie Wonder', 'James Brown'],
+          correct: 'Michael Jackson',
+          explanation: "'Billie Jean' was one of Michael Jackson's biggest hits."
+        },
+        {
+          question: "Which artist sang 'Like a Prayer'?",
+          options: ['Whitney Houston', 'Madonna', 'Cyndi Lauper', 'Janet Jackson'],
+          correct: 'Madonna',
+          explanation: "'Like a Prayer' was Madonna's 1989 hit."
+        },
+        {
+          question: "What year was 'Thriller' released?",
+          options: ['1980', '1982', '1984', '1986'],
+          correct: '1982',
+          explanation: "Michael Jackson's 'Thriller' was released in 1982."
+        },
+        {
+          question: "Who sang 'I Will Always Love You'?",
+          options: ['Mariah Carey', 'Celine Dion', 'Whitney Houston', 'Tina Turner'],
+          correct: 'Whitney Houston',
+          explanation: "Whitney Houston's version was from 'The Bodyguard'."
+        },
+        {
+          question: "Which boy band sang 'I Want It That Way'?",
+          options: ['NSYNC', 'Backstreet Boys', 'Boyz II Men', '98 Degrees'],
+          correct: 'Backstreet Boys',
+          explanation: "'I Want It That Way' was the Backstreet Boys' hit."
+        }
+      ],
+      medium: [
+        {
+          question: "What was Britney Spears' debut single?",
+          options: ['Sometimes', '...Baby One More Time', 'You Drive Me Crazy', 'Born to Make You Happy'],
+          correct: '...Baby One More Time',
+          explanation: "'...Baby One More Time' launched Britney's career."
+        },
+        {
+          question: "Which Adele album features 'Rolling in the Deep'?",
+          options: ['19', '21', '25', '30'],
+          correct: '21',
+          explanation: "'Rolling in the Deep' was from album '21'."
+        },
+        {
+          question: "Who originally wrote 'I Will Always Love You'?",
+          options: ['Whitney Houston', 'Dolly Parton', 'Diane Warren', 'Carole King'],
+          correct: 'Dolly Parton',
+          explanation: "Dolly Parton wrote and recorded it originally in 1973."
+        },
+        {
+          question: "What was Taylor Swift's first album?",
+          options: ['Fearless', 'Taylor Swift', 'Speak Now', 'Red'],
+          correct: 'Taylor Swift',
+          explanation: "Taylor Swift's self-titled debut was in 2006."
+        },
+        {
+          question: "Which artist has won the most Grammy Awards?",
+          options: ['Michael Jackson', 'Beyoncé', 'Alison Krauss', 'Quincy Jones'],
+          correct: 'Beyoncé',
+          explanation: "Beyoncé holds the record for most Grammy wins."
+        }
+      ],
+      hard: [
+        {
+          question: "What was the first music video on MTV?",
+          options: ['Video Killed the Radio Star', 'Girls on Film', 'You Better Run', 'She\'s So High'],
+          correct: 'Video Killed the Radio Star',
+          explanation: "'Video Killed the Radio Star' was MTV's first video."
+        },
+        {
+          question: "Which producer created the most #1 hits after Paul McCartney?",
+          options: ['Phil Spector', 'George Martin', 'Quincy Jones', 'Max Martin'],
+          correct: 'Max Martin',
+          explanation: "Max Martin has produced more #1 hits than anyone except McCartney."
+        },
+        {
+          question: "What song does 'Good 4 U' interpolate?",
+          options: ['Misery Business', 'That\'s What You Get', 'Crushcrushcrush', 'Still Into You'],
+          correct: 'Misery Business',
+          explanation: "'Good 4 U' interpolates Paramore's 'Misery Business'."
+        },
+        {
+          question: "Which artist had #1 hits in six decades?",
+          options: ['Elton John', 'Paul McCartney', 'Barbra Streisand', 'Tony Bennett'],
+          correct: 'Tony Bennett',
+          explanation: "Tony Bennett achieved this from 1950s to 2010s."
+        },
+        {
+          question: "What was the Beatles' last #1 in the US?",
+          options: ['Let It Be', 'The Long and Winding Road', 'Get Back', 'Come Together'],
+          correct: 'The Long and Winding Road',
+          explanation: "This was their final #1 hit in the US."
+        }
+      ]
+    },
+    hiphop: {
+      easy: [
+        {
+          question: "Which rapper released 'The Marshall Mathers LP'?",
+          options: ['Jay-Z', 'Nas', 'Eminem', '50 Cent'],
+          correct: 'Eminem',
+          explanation: "This is one of Eminem's most successful albums."
+        },
+        {
+          question: "What does 'DJ' stand for?",
+          options: ['Disk Jockey', 'Dance Judge', 'Digital Jammer', 'Drum Jazz'],
+          correct: 'Disk Jockey',
+          explanation: "DJ stands for Disk Jockey."
+        },
+        {
+          question: "Which city is the birthplace of hip-hop?",
+          options: ['Los Angeles', 'Chicago', 'New York', 'Detroit'],
+          correct: 'New York',
+          explanation: "Hip-hop originated in the Bronx, New York."
+        },
+        {
+          question: "Who sang 'Crazy in Love'?",
+          options: ['Whitney Houston', 'Alicia Keys', 'Beyoncé', 'Janet Jackson'],
+          correct: 'Beyoncé',
+          explanation: "'Crazy in Love' was Beyoncé's debut solo single."
+        },
+        {
+          question: "What instrument is central to hip-hop?",
+          options: ['Guitar', 'Turntables', 'Piano', 'Saxophone'],
+          correct: 'Turntables',
+          explanation: "Turntables are fundamental to hip-hop culture."
+        }
+      ],
+      medium: [
+        {
+          question: "What was Tupac's real name?",
+          options: ['Tupac Amaru Shakur', 'Lesane Parish Crooks', 'Both A and B', 'Neither A nor B'],
+          correct: 'Both A and B',
+          explanation: "He was born Lesane Parish Crooks, later renamed Tupac Amaru Shakur."
+        },
+        {
+          question: "Who produced 'Still D.R.E.'?",
+          options: ['Dr. Dre', 'Scott Storch', 'Mel-Man', 'Focus...'],
+          correct: 'Scott Storch',
+          explanation: "Scott Storch co-produced this with Dr. Dre."
+        },
+        {
+          question: "First rap song to hit #1 on Billboard?",
+          options: ['Rapture', 'The Message', 'Rapper\'s Delight', 'Planet Rock'],
+          correct: 'Rapture',
+          explanation: "Blondie's 'Rapture' was the first rap-influenced #1."
+        },
+        {
+          question: "Which album features 'Juicy'?",
+          options: ['Life After Death', 'Ready to Die', 'Born Again', 'Duets'],
+          correct: 'Ready to Die',
+          explanation: "'Juicy' was from Biggie's debut 'Ready to Die'."
+        },
+        {
+          question: "What does 'N.W.A' stand for?",
+          options: ['New Wave Association', 'Niggaz Wit Attitudes', 'New World Artists', 'North West Alliance'],
+          correct: 'Niggaz Wit Attitudes',
+          explanation: "This was the influential group from Compton."
+        }
+      ],
+      hard: [
+        {
+          question: "Which sample is in 'Through the Wire'?",
+          options: ['Through the Fire', 'Through the Rain', 'Through the Wire', 'Through the Night'],
+          correct: 'Through the Fire',
+          explanation: "Kanye sampled Chaka Khan's 'Through the Fire'."
+        },
+        {
+          question: "First hip-hop Album of the Year Grammy?",
+          options: ['Miseducation of Lauryn Hill', 'Eminem Show', 'OutKast Speakerboxxx', 'None yet'],
+          correct: 'Miseducation of Lauryn Hill',
+          explanation: "Lauryn Hill's album was the first to win."
+        },
+        {
+          question: "Who founded Roc-A-Fella Records?",
+          options: ['Jay-Z alone', 'Dame Dash alone', 'Jay-Z and Dame Dash', 'Jay-Z, Dame Dash, and Kareem Burke'],
+          correct: 'Jay-Z, Dame Dash, and Kareem Burke',
+          explanation: "All three co-founded the label."
+        },
+        {
+          question: "Last song Tupac recorded?",
+          options: ['Hit \'Em Up', 'All Eyez on Me', 'Hail Mary', 'Better Dayz'],
+          correct: 'Better Dayz',
+          explanation: "This was among his final recordings."
+        },
+        {
+          question: "MF DOOM's masterpiece album?",
+          options: ['Operation: Doomsday', 'Madvillainy', 'Mm.. Food', 'Born Like This'],
+          correct: 'Madvillainy',
+          explanation: "'Madvillainy' with Madlib is his masterpiece."
+        }
+      ]
+    },
+    classical: {
+      easy: [
+        {
+          question: "Who composed 'The Four Seasons'?",
+          options: ['Bach', 'Mozart', 'Vivaldi', 'Beethoven'],
+          correct: 'Vivaldi',
+          explanation: "Vivaldi composed this around 1720."
+        },
+        {
+          question: "How many movements in a typical symphony?",
+          options: ['2', '3', '4', '5'],
+          correct: '4',
+          explanation: "Classical symphonies typically have four movements."
+        },
+        {
+          question: "Which family does violin belong to?",
+          options: ['Brass', 'Woodwind', 'Percussion', 'String'],
+          correct: 'String',
+          explanation: "Violin is a string instrument."
+        },
+        {
+          question: "Who wrote 'Für Elise'?",
+          options: ['Mozart', 'Beethoven', 'Chopin', 'Bach'],
+          correct: 'Beethoven',
+          explanation: "Beethoven composed this around 1810."
+        },
+        {
+          question: "Lowest male singing voice?",
+          options: ['Tenor', 'Baritone', 'Bass', 'Alto'],
+          correct: 'Bass',
+          explanation: "Bass is the lowest male voice."
+        }
+      ],
+      medium: [
+        {
+          question: "Who wrote 'The Magic Flute'?",
+          options: ['Haydn', 'Mozart', 'Schubert', 'Weber'],
+          correct: 'Mozart',
+          explanation: "This was Mozart's final opera."
+        },
+        {
+          question: "Key of Beethoven's 9th Symphony?",
+          options: ['C major', 'D major', 'D minor', 'E flat major'],
+          correct: 'D minor',
+          explanation: "The 9th is in D minor."
+        },
+        {
+          question: "Period after Baroque?",
+          options: ['Romantic', 'Classical', 'Modern', 'Renaissance'],
+          correct: 'Classical',
+          explanation: "Classical period followed Baroque."
+        },
+        {
+          question: "Who composed 'Rhapsody in Blue'?",
+          options: ['Duke Ellington', 'George Gershwin', 'Aaron Copland', 'Leonard Bernstein'],
+          correct: 'George Gershwin',
+          explanation: "Gershwin composed this in 1924."
+        },
+        {
+          question: "Miles Davis played which instrument?",
+          options: ['Saxophone', 'Trumpet', 'Piano', 'Trombone'],
+          correct: 'Trumpet',
+          explanation: "Miles was a legendary trumpeter."
+        }
+      ],
+      hard: [
+        {
+          question: "Bach's 'Art of Fugue' BWV number?",
+          options: ['BWV 1080', 'BWV 988', 'BWV 846-893', 'BWV 1001-1006'],
+          correct: 'BWV 1080',
+          explanation: "BWV 1080 is 'The Art of Fugue'."
+        },
+        {
+          question: "Schubert's 'Trout Quintet' scoring?",
+          options: ['Piano, violin, viola, cello, bass', 'Piano, violin, viola, cello, clarinet', 'Piano, 2 violins, viola, cello', 'Piano, violin, viola, cello, horn'],
+          correct: 'Piano, violin, viola, cello, bass',
+          explanation: "It unusually includes double bass."
+        },
+        {
+          question: "Which Stravinsky ballet caused riots?",
+          options: ['The Firebird', 'Petrushka', 'The Rite of Spring', 'Pulcinella'],
+          correct: 'The Rite of Spring',
+          explanation: "This caused riots in 1913."
+        },
+        {
+          question: "Berg's 'Wozzeck' uses which technique?",
+          options: ['Serialism', 'Minimalism', 'Aleatoric music', 'Twelve-tone technique'],
+          correct: 'Twelve-tone technique',
+          explanation: "It used Schoenberg's twelve-tone method."
+        },
+        {
+          question: "Who composed 'Round Midnight'?",
+          options: ['Bill Evans', 'Thelonious Monk', 'Oscar Peterson', 'Herbie Hancock'],
+          correct: 'Thelonious Monk',
+          explanation: "This is one of Monk's most famous pieces."
+        }
+      ]
+    }
+  };
+
+  const [leaderboard, setLeaderboard] = useState([
+    { player_name: "MusicMaster", score: 10, percentage: 100, difficulty: "hard", category: "rock" },
+    { player_name: "RockFan92", score: 6, percentage: 80, difficulty: "medium", category: "rock" },
+    { player_name: "JazzLover", score: 4, percentage: 80, difficulty: "easy", category: "classical" }
+  ]);
+
+  const generateQuestions = (category, difficulty) => {
+    if (category === 'mixed') {
+      const allQuestions = [];
+      Object.keys(questionDatabase).forEach(cat => {
+        if (questionDatabase[cat][difficulty]) {
+          allQuestions.push(...questionDatabase[cat][difficulty]);
+        }
+      });
+      const shuffled = allQuestions.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, 5);
+    }
+    return questionDatabase[category]?.[difficulty] || [];
+  };
+
+  useEffect(() => {
+    let interval = null;
+    if (isTimerActive && timeLeft > 0 && !showResult) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && !showResult) {
+      handleTimeExpired();
+    }
+    return () => clearInterval(interval);
+  }, [isTimerActive, timeLeft, showResult]);
+
+  const handleTimeExpired = () => {
+    const q = currentQuestions[currentQuestion];
+    setUserAnswers([...userAnswers, { 
+      question: q.question, 
+      selected: 'Time Expired', 
+      correct: q.correct,
+      isCorrect: false,
+      explanation: q.explanation
+    }]);
+    setShowResult(true);
+    setIsTimerActive(false);
+  };
+
+  const buyExtraTime = () => {
+    if (credits > 0) {
+      setCredits(credits - 1);
+      setTimeLeft(timeLeft + 10);
+    }
+  };
+
+  const createUser = (name) => {
+    if (!name || !name.trim()) return;
+    const user = { name: name.trim(), credits: 3, bestScore: 0 };
+    setCurrentUser(user);
+    setPlayerName(name.trim());
+    setView('selection');
+  };
+
+  const addToLeaderboard = (name, finalScore) => {
+    const difficultyInfo = difficulties[selectedDifficulty];
+    const adjustedScore = Math.round(finalScore * difficultyInfo.pointsMultiplier);
+    const percentage = Math.round((finalScore / currentQuestions.length) * 100);
+    const entry = { 
+      player_name: name, 
+      score: adjustedScore, 
+      percentage,
+      difficulty: selectedDifficulty,
+      category: selectedCategory
+    };
+    setLeaderboard([...leaderboard, entry]
+      .sort((a, b) => b.score - a.score || b.percentage - a.percentage)
+      .slice(0, 10));
+  };
+
+  const handleSubmitAnswer = () => {
+    setIsTimerActive(false);
+    const q = currentQuestions[currentQuestion];
+    const isCorrect = selectedAnswer === q.correct;
+    
+    if (isCorrect) setScore(score + 1);
+    
+    setUserAnswers([...userAnswers, { 
+      question: q.question, 
+      selected: selectedAnswer, 
+      correct: q.correct,
+      isCorrect,
+      explanation: q.explanation
+    }]);
+    setShowResult(true);
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestion < currentQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer('');
+      setShowResult(false);
+      const difficultyInfo = difficulties[selectedDifficulty];
+      setTimeLeft(difficultyInfo.timer);
+      setIsTimerActive(true);
+    } else {
+      setQuizComplete(true);
+      setIsTimerActive(false);
+      if (currentUser) {
+        addToLeaderboard(currentUser.name, score);
+      }
+    }
+  };
+
+  const startTimer = () => {
+    setIsTimerActive(true);
+    const difficultyInfo = difficulties[selectedDifficulty];
+    setTimeLeft(difficultyInfo.timer);
+  };
+
+  const startQuiz = () => {
+    if (!selectedDifficulty || !selectedCategory) return;
+    const questions = generateQuestions(selectedCategory, selectedDifficulty);
+    setCurrentQuestions(questions);
+    const difficultyInfo = difficulties[selectedDifficulty];
+    setTimeLeft(difficultyInfo.timer);
+    setView('quiz');
+  };
+
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer('');
+    setShowResult(false);
+    setQuizComplete(false);
+    setUserAnswers([]);
+    setTimeLeft(10);
+    setIsTimerActive(false);
+    setSelectedDifficulty('');
+    setSelectedCategory('');
+    setCurrentQuestions([]);
+    setView('selection');
+  };
+
+  const buttonStyle = {
+    border: 'none',
+    borderRadius: '9999px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease'
+  };
+
+  const cardStyle = {
+    background: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '1.5rem',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  };
+
+  const gradientBg = {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #4c1d95 0%, #1e40af 50%, #3730a3 100%)',
+    padding: '1rem'
+  };
+
+  if (view === 'selection') {
+    return (
+      <div style={gradientBg}>
+        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <Music style={{ width: '3rem', height: '3rem', color: '#fbbf24' }} />
+              <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                Daily Music Quiz
+              </h1>
+            </div>
+            <p style={{ fontSize: '1.25rem', color: '#bfdbfe', marginBottom: '2rem' }}>
+              Choose your difficulty and category to start your musical journey
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <div style={{ ...cardStyle, padding: '2rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
+                Choose Difficulty
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {Object.entries(difficulties).map(([key, diff]) => {
+                  const Icon = diff.icon;
+                  const isSelected = selectedDifficulty === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedDifficulty(key)}
+                      style={{
+                        padding: '1.5rem',
+                        borderRadius: '1rem',
+                        border: `2px solid ${isSelected ? diff.color : 'rgba(255, 255, 255, 0.2)'}`,
+                        background: isSelected ? diff.bgColor : 'rgba(255, 255, 255, 0.1)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textAlign: 'left'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                        <Icon style={{ width: '2rem', height: '2rem', color: diff.color }} />
+                        <div>
+                          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                            {diff.name}
+                          </h3>
+                          <p style={{ color: diff.color, fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+                            {diff.pointsMultiplier}x Points
+                          </p>
+                        </div>
+                      </div>
+                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', margin: 0 }}>
+                        {diff.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, padding: '2rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
+                Choose Category
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {Object.entries(categories).map(([key, cat]) => {
+                  const isSelected = selectedCategory === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedCategory(key)}
+                      style={{
+                        padding: '1.5rem',
+                        borderRadius: '1rem',
+                        border: `2px solid ${isSelected ? cat.color : 'rgba(255, 255, 255, 0.2)'}`,
+                        background: isSelected ? cat.bgColor : 'rgba(255, 255, 255, 0.1)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        textAlign: 'left'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                        <span style={{ fontSize: '2rem' }}>{cat.icon}</span>
+                        <div>
+                          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                            {cat.name}
+                          </h3>
+                        </div>
+                      </div>
+                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', margin: 0 }}>
+                        {cat.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <button
+              onClick={startQuiz}
+              disabled={!selectedDifficulty || !selectedCategory}
+              style={{
+                ...buttonStyle,
+                background: (selectedDifficulty && selectedCategory)
+                  ? 'linear-gradient(135deg, #059669, #2563eb)'
+                  : '#6b7280',
+                color: (selectedDifficulty && selectedCategory) ? 'white' : '#9ca3af',
+                cursor: (selectedDifficulty && selectedCategory) ? 'pointer' : 'not-allowed',
+                padding: '1rem 3rem',
+                fontSize: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                margin: '0 auto'
+              }}
+            >
+              <Play style={{ width: '1.5rem', height: '1.5rem' }} />
+              Start Quiz
+            </button>
+            
+            {selectedDifficulty && selectedCategory && (
+              <p style={{ color: '#bfdbfe', marginTop: '1rem', fontSize: '0.875rem' }}>
+                You'll face 5 questions • {difficulties[selectedDifficulty].timer}s per question • {difficulties[selectedDifficulty].pointsMultiplier}x score multiplier
+              </p>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+            <button 
+              onClick={() => setView('nameEntry')} 
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#93c5fd',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              Create Profile
+            </button>
+            <button 
+              onClick={() => setView('leaderboard')} 
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#93c5fd',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              View Leaderboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'nameEntry') {
     return (
       <div style={gradientBg}>
@@ -121,7 +874,6 @@ const DailyMusicQuiz = () => {
     );
   }
 
-  // Leaderboard View
   if (view === 'leaderboard') {
     return (
       <div style={gradientBg}>
@@ -217,7 +969,6 @@ const DailyMusicQuiz = () => {
     );
   }
 
-  // Quiz Complete Screen
   if (quizComplete) {
     return (
       <div style={gradientBg}>
@@ -301,14 +1052,11 @@ const DailyMusicQuiz = () => {
     );
   }
 
-  // Main Quiz Screen
   if (view === 'quiz' && currentQuestions.length > 0) {
     return (
       <div style={gradientBg}>
         <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-          {/* Quiz Card */}
           <div style={{ ...cardStyle, padding: '2rem' }}>
-            {/* Progress and Timer */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#bfdbfe' }}>
                 <span>Question {currentQuestion + 1} of {currentQuestions.length}</span>
@@ -360,7 +1108,6 @@ const DailyMusicQuiz = () => {
               </div>
             </div>
 
-            {/* Quiz Info Banner */}
             <div style={{
               display: 'flex',
               justifyContent: 'center',
@@ -388,7 +1135,6 @@ const DailyMusicQuiz = () => {
               </span>
             </div>
 
-            {/* Progress Bar */}
             <div style={{ 
               width: '100%', 
               background: 'rgba(255, 255, 255, 0.2)', 
@@ -405,7 +1151,6 @@ const DailyMusicQuiz = () => {
               }} />
             </div>
 
-            {/* Question */}
             <div style={{ marginBottom: '2rem' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem' }}>
                 {currentQuestions[currentQuestion]?.question}
@@ -461,7 +1206,6 @@ const DailyMusicQuiz = () => {
               </div>
             </div>
 
-            {/* Explanation */}
             {showResult && (
               <div style={{
                 marginBottom: '1.5rem',
@@ -476,7 +1220,6 @@ const DailyMusicQuiz = () => {
               </div>
             )}
 
-            {/* Action Button */}
             <div style={{ textAlign: 'center' }}>
               {currentQuestion === 0 && !isTimerActive && !showResult ? (
                 <button
@@ -547,864 +1290,16 @@ const DailyMusicQuiz = () => {
         </div>
       </div>
     );
-  },
-    medium: {
-      name: "Medium", 
-      icon: Zap,
-      color: "#f59e0b",
-      bgColor: "rgba(245, 158, 11, 0.2)",
-      timer: 10,
-      pointsMultiplier: 1.5,
-      description: "For music enthusiasts • 10 seconds per question"
-    },
-    hard: {
-      name: "Hard",
-      icon: Brain,
-      color: "#ef4444", 
-      bgColor: "rgba(239, 68, 68, 0.2)",
-      timer: 7,
-      pointsMultiplier: 2,
-      description: "Expert level challenge • 7 seconds per question"
-    }
-  };
-
-  // Categories - expanded
-  const categories = {
-    rock: {
-      name: "Rock & Metal",
-      icon: "🎸",
-      color: "#dc2626",
-      bgColor: "rgba(220, 38, 38, 0.2)",
-      description: "Classic rock, metal, and alternative"
-    },
-    pop: {
-      name: "Pop & Charts",
-      icon: "⭐",
-      color: "#ec4899", 
-      bgColor: "rgba(236, 72, 153, 0.2)",
-      description: "Chart toppers and pop classics"
-    },
-    hiphop: {
-      name: "Hip-Hop & R&B",
-      icon: "🎤",
-      color: "#8b5cf6",
-      bgColor: "rgba(139, 92, 246, 0.2)",
-      description: "Rap, hip-hop, and R&B hits"
-    },
-    classical: {
-      name: "Classical & Jazz", 
-      icon: "🎼",
-      color: "#059669",
-      bgColor: "rgba(5, 150, 105, 0.2)",
-      description: "Classical masterpieces and jazz standards"
-    },
-    mixed: {
-      name: "Mixed Genres",
-      icon: "🎵", 
-      color: "#3b82f6",
-      bgColor: "rgba(59, 130, 246, 0.2)",
-      description: "A bit of everything"
-    }
-  };
-
-  // Complete question database
-  const questionDatabase = {
-    rock: {
-      easy: [
-        {
-          question: "Which band released the album 'Abbey Road'?",
-          options: ['The Rolling Stones', 'The Beatles', 'Led Zeppelin', 'Pink Floyd'],
-          correct: 'The Beatles',
-          explanation: "Abbey Road was The Beatles' final studio album, released in 1969."
-        },
-        {
-          question: "Who is the lead singer of Queen?",
-          options: ['David Bowie', 'Freddie Mercury', 'Mick Jagger', 'Robert Plant'],
-          correct: 'Freddie Mercury',
-          explanation: "Freddie Mercury was Queen's iconic lead vocalist and frontman."
-        },
-        {
-          question: "Which band performed 'Stairway to Heaven'?",
-          options: ['Deep Purple', 'Black Sabbath', 'Led Zeppelin', 'Pink Floyd'],
-          correct: 'Led Zeppelin',
-          explanation: "'Stairway to Heaven' is Led Zeppelin's most famous song from 1971."
-        },
-        {
-          question: "How many strings does a standard guitar have?",
-          options: ['4', '5', '6', '7'],
-          correct: '6',
-          explanation: "A standard guitar has 6 strings, tuned E-A-D-G-B-E."
-        },
-        {
-          question: "Which instrument is Keith Moon famous for playing?",
-          options: ['Guitar', 'Bass', 'Drums', 'Keyboard'],
-          correct: 'Drums',
-          explanation: "Keith Moon was the explosive drummer for The Who."
-        }
-      ],
-      medium: [
-        {
-          question: "What year was 'Dark Side of the Moon' by Pink Floyd released?",
-          options: ['1971', '1973', '1975', '1977'],
-          correct: '1973',
-          explanation: "Pink Floyd's 'Dark Side of the Moon' was released in 1973 and spent 14 years on the Billboard 200."
-        },
-        {
-          question: "Which guitarist is known as 'Slowhand'?",
-          options: ['Jimmy Page', 'Eric Clapton', 'Jeff Beck', 'Keith Richards'],
-          correct: 'Eric Clapton',
-          explanation: "Eric Clapton earned the nickname 'Slowhand' early in his career."
-        },
-        {
-          question: "What does 'AC/DC' stand for?",
-          options: ['Alternating Current/Direct Current', 'Australian Club/Disco Club', 'After Christ/During Christ', 'Nothing specific'],
-          correct: 'Alternating Current/Direct Current',
-          explanation: "AC/DC is named after the electrical term, seen on a sewing machine by the band's sister."
-        },
-        {
-          question: "Which Black Sabbath song is considered the first heavy metal song?",
-          options: ['Iron Man', 'Paranoid', 'Black Sabbath', 'War Pigs'],
-          correct: 'Black Sabbath',
-          explanation: "The song 'Black Sabbath' from 1970 is often cited as the first true heavy metal song."
-        },
-        {
-          question: "Who replaced Syd Barrett in Pink Floyd?",
-          options: ['Roger Waters', 'Nick Mason', 'David Gilmour', 'Richard Wright'],
-          correct: 'David Gilmour',
-          explanation: "David Gilmour joined Pink Floyd in 1968, initially alongside Syd Barrett before Barrett left."
-        }
-      ],
-      hard: [
-        {
-          question: "What was the original name of Led Zeppelin?",
-          options: ['The New Yardbirds', 'Zeppelin', 'The Heavy Metal Kids', 'Band of Joy'],
-          correct: 'The New Yardbirds',
-          explanation: "Led Zeppelin was originally called The New Yardbirds before changing their name in 1968."
-        },
-        {
-          question: "Which album features the song 'Shine On You Crazy Diamond'?",
-          options: ['The Wall', 'Animals', 'Wish You Were Here', 'Meddle'],
-          correct: 'Wish You Were Here',
-          explanation: "'Shine On You Crazy Diamond' is a tribute to Syd Barrett on Pink Floyd's 1975 album 'Wish You Were Here'."
-        },
-        {
-          question: "What tuning does Tony Iommi primarily use?",
-          options: ['Standard E', 'Drop D', 'C# Standard', 'Open G'],
-          correct: 'C# Standard',
-          explanation: "Tony Iommi often used C# standard tuning due to his fingertip injury, creating Black Sabbath's heavy sound."
-        },
-        {
-          question: "Which producer worked on both 'Led Zeppelin IV' and 'Physical Graffiti'?",
-          options: ['George Martin', 'Andy Johns', 'Jimmy Page', 'Glyn Johns'],
-          correct: 'Andy Johns',
-          explanation: "Andy Johns engineered and co-produced several Led Zeppelin albums including IV and Physical Graffiti."
-        },
-        {
-          question: "What was the last song John Bonham recorded with Led Zeppelin?",
-          options: ['Kashmir', 'In the Evening', 'All My Love', "I'm Gonna Crawl"],
-          correct: "I'm Gonna Crawl",
-          explanation: "'I'm Gonna Crawl' from 'In Through the Out Door' was the last song Bonham recorded before his death."
-        }
-      ]
-    },
-    pop: {
-      easy: [
-        {
-          question: "Who performed the hit song 'Billie Jean'?",
-          options: ['Prince', 'Michael Jackson', 'Stevie Wonder', 'James Brown'],
-          correct: 'Michael Jackson',
-          explanation: "'Billie Jean' was one of Michael Jackson's biggest hits from 'Thriller'."
-        },
-        {
-          question: "Which artist sang 'Like a Prayer'?",
-          options: ['Whitney Houston', 'Madonna', 'Cyndi Lauper', 'Janet Jackson'],
-          correct: 'Madonna',
-          explanation: "'Like a Prayer' was Madonna's 1989 hit that sparked controversy and acclaim."
-        },
-        {
-          question: "What year was 'Thriller' released?",
-          options: ['1980', '1982', '1984', '1986'],
-          correct: '1982',
-          explanation: "Michael Jackson's 'Thriller' was released in 1982 and became the best-selling album of all time."
-        },
-        {
-          question: "Who sang 'I Will Always Love You'?",
-          options: ['Mariah Carey', 'Celine Dion', 'Whitney Houston', 'Tina Turner'],
-          correct: 'Whitney Houston',
-          explanation: "Whitney Houston's version of 'I Will Always Love You' was a massive hit from 'The Bodyguard' soundtrack."
-        },
-        {
-          question: "Which boy band sang 'I Want It That Way'?",
-          options: ['NSYNC', 'Backstreet Boys', 'Boyz II Men', '98 Degrees'],
-          correct: 'Backstreet Boys',
-          explanation: "'I Want It That Way' was the Backstreet Boys' biggest hit from 1999."
-        }
-      ],
-      medium: [
-        {
-          question: "What was Britney Spears' debut single?",
-          options: ['Sometimes', '...Baby One More Time', 'You Drive Me Crazy', 'Born to Make You Happy'],
-          correct: '...Baby One More Time',
-          explanation: "'...Baby One More Time' launched Britney Spears' career in 1998."
-        },
-        {
-          question: "Which Adele album features 'Rolling in the Deep'?",
-          options: ['19', '21', '25', '30'],
-          correct: '21',
-          explanation: "'Rolling in the Deep' was the lead single from Adele's album '21' released in 2011."
-        },
-        {
-          question: "Who wrote 'I Will Always Love You' originally?",
-          options: ['Whitney Houston', 'Dolly Parton', 'Diane Warren', 'Carole King'],
-          correct: 'Dolly Parton',
-          explanation: "Dolly Parton wrote and originally recorded 'I Will Always Love You' in 1973."
-        },
-        {
-          question: "What was Taylor Swift's first country album?",
-          options: ['Fearless', 'Taylor Swift', 'Speak Now', 'Red'],
-          correct: 'Taylor Swift',
-          explanation: "Taylor Swift's self-titled debut album was released in 2006 as a country album."
-        },
-        {
-          question: "Which artist has won the most Grammy Awards?",
-          options: ['Michael Jackson', 'Beyoncé', 'Alison Krauss', 'Quincy Jones'],
-          correct: 'Beyoncé',
-          explanation: "Beyoncé holds the record for most Grammy wins by any artist with 32 awards."
-        }
-      ],
-      hard: [
-        {
-          question: "What was the first music video played on MTV?",
-          options: ['Video Killed the Radio Star', 'Girls on Film', 'You Better Run', 'She\'s So High'],
-          correct: 'Video Killed the Radio Star',
-          explanation: "'Video Killed the Radio Star' by The Buggles was MTV's first music video on August 1, 1981."
-        },
-        {
-          question: "Which producer is known for creating more #1 hits than anyone except Paul McCartney?",
-          options: ['Phil Spector', 'George Martin', 'Quincy Jones', 'Max Martin'],
-          correct: 'Max Martin',
-          explanation: "Max Martin has produced more #1 hits than anyone except Paul McCartney, earning him pop producer legend status."
-        },
-        {
-          question: "What sample does 'Good 4 U' by Olivia Rodrigo interpolate?",
-          options: ['Misery Business', 'That\'s What You Get', 'Crushcrushcrush', 'Still Into You'],
-          correct: 'Misery Business',
-          explanation: "'Good 4 U' interpolates the melody from Paramore's 'Misery Business'."
-        },
-        {
-          question: "Which artist was the first to have a #1 hit in six consecutive decades?",
-          options: ['Elton John', 'Paul McCartney', 'Barbra Streisand', 'Tony Bennett'],
-          correct: 'Tony Bennett',
-          explanation: "Tony Bennett achieved #1 hits from the 1950s through the 2010s, spanning six decades."
-        },
-        {
-          question: "What was the last Beatles song to reach #1 in the US?",
-          options: ['Let It Be', 'The Long and Winding Road', 'Get Back', 'Come Together'],
-          correct: 'The Long and Winding Road',
-          explanation: "'The Long and Winding Road' was The Beatles' final #1 hit in the US in 1970."
-        }
-      ]
-    },
-    hiphop: {
-      easy: [
-        {
-          question: "Which rapper released the album 'The Marshall Mathers LP'?",
-          options: ['Jay-Z', 'Nas', 'Eminem', '50 Cent'],
-          correct: 'Eminem',
-          explanation: "'The Marshall Mathers LP' is one of Eminem's most successful albums from 2000."
-        },
-        {
-          question: "What does 'DJ' stand for?",
-          options: ['Disk Jockey', 'Dance Judge', 'Digital Jammer', 'Drum Jazz'],
-          correct: 'Disk Jockey',
-          explanation: "DJ stands for Disk Jockey, someone who plays recorded music for an audience."
-        },
-        {
-          question: "Which city is considered the birthplace of hip-hop?",
-          options: ['Los Angeles', 'Chicago', 'New York', 'Detroit'],
-          correct: 'New York',
-          explanation: "Hip-hop originated in the Bronx, New York in the 1970s."
-        },
-        {
-          question: "Who sang 'Crazy in Love'?",
-          options: ['Whitney Houston', 'Alicia Keys', 'Beyoncé', 'Janet Jackson'],
-          correct: 'Beyoncé',
-          explanation: "'Crazy in Love' featuring Jay-Z was Beyoncé's debut solo single in 2003."
-        },
-        {
-          question: "What instrument is central to hip-hop production?",
-          options: ['Guitar', 'Turntables', 'Piano', 'Saxophone'],
-          correct: 'Turntables',
-          explanation: "Turntables and DJ techniques are fundamental to hip-hop culture and production."
-        }
-      ],
-      medium: [
-        {
-          question: "What was Tupac's real name?",
-          options: ['Tupac Amaru Shakur', 'Lesane Parish Crooks', 'Both A and B', 'Neither A nor B'],
-          correct: 'Both A and B',
-          explanation: "Tupac was born Lesane Parish Crooks but later renamed Tupac Amaru Shakur."
-        },
-        {
-          question: "Which producer is behind the beats for 'Still D.R.E.'?",
-          options: ['Dr. Dre', 'Scott Storch', 'Mel-Man', 'Focus...'],
-          correct: 'Scott Storch',
-          explanation: "Scott Storch co-produced 'Still D.R.E.' with Dr. Dre, playing the iconic piano melody."
-        },
-        {
-          question: "What was the first rap song to hit #1 on the Billboard Hot 100?",
-          options: ['Rapture', 'The Message', 'Rapper\'s Delight', 'Planet Rock'],
-          correct: 'Rapture',
-          explanation: "Blondie's 'Rapture' featuring a rap section was the first rap-influenced song to hit #1 in 1981."
-        },
-        {
-          question: "Which album features the song 'Juicy' by The Notorious B.I.G.?",
-          options: ['Life After Death', 'Ready to Die', 'Born Again', 'Duets'],
-          correct: 'Ready to Die',
-          explanation: "'Juicy' was the lead single from Biggie's debut album 'Ready to Die' in 1994."
-        },
-        {
-          question: "What does 'N.W.A' stand for?",
-          options: ['New Wave Association', 'Niggaz Wit Attitudes', 'New World Artists', 'North West Alliance'],
-          correct: 'Niggaz Wit Attitudes',
-          explanation: "N.W.A stood for 'Niggaz Wit Attitudes', the influential rap group from Compton."
-        }
-      ],
-      hard: [
-        {
-          question: "Which sample is used in 'Through the Wire' by Kanye West?",
-          options: ['Through the Fire', 'Through the Rain', 'Through the Wire', 'Through the Night'],
-          correct: 'Through the Fire',
-          explanation: "Kanye West sampled Chaka Khan's 'Through the Fire' for his debut single 'Through the Wire'."
-        },
-        {
-          question: "What was the first hip-hop album to win a Grammy for Album of the Year?",
-          options: ['The Miseducation of Lauryn Hill', 'Eminem Show', 'OutKast Speakerboxxx', 'None yet'],
-          correct: 'The Miseducation of Lauryn Hill',
-          explanation: "Lauryn Hill's album was the first hip-hop album to win the Grammy for Album of the Year in 1999."
-        },
-        {
-          question: "Which rapper founded Roc-A-Fella Records?",
-          options: ['Jay-Z alone', 'Dame Dash alone', 'Jay-Z and Dame Dash', 'Jay-Z, Dame Dash, and Kareem Burke'],
-          correct: 'Jay-Z, Dame Dash, and Kareem Burke',
-          explanation: "Roc-A-Fella Records was co-founded by Jay-Z, Dame Dash, and Kareem 'Biggs' Burke in 1995."
-        },
-        {
-          question: "What was the last song recorded by Tupac before his death?",
-          options: ['Hit \'Em Up', 'All Eyez on Me', 'Hail Mary', 'Better Dayz'],
-          correct: 'Better Dayz',
-          explanation: "'Better Dayz' was among the last songs Tupac recorded in the studio before his death in 1996."
-        },
-        {
-          question: "Which MF DOOM album is considered his magnum opus?",
-          options: ['Operation: Doomsday', 'Madvillainy', 'Mm.. Food', 'Born Like This'],
-          correct: 'Madvillainy',
-          explanation: "'Madvillainy' with Madlib is widely considered MF DOOM's masterpiece and most influential work."
-        }
-      ]
-    },
-    classical: {
-      easy: [
-        {
-          question: "Who composed 'The Four Seasons'?",
-          options: ['Bach', 'Mozart', 'Vivaldi', 'Beethoven'],
-          correct: 'Vivaldi',
-          explanation: "Antonio Vivaldi composed 'The Four Seasons' around 1720."
-        },
-        {
-          question: "How many movements does a typical symphony have?",
-          options: ['2', '3', '4', '5'],
-          correct: '4',
-          explanation: "A classical symphony typically has four movements in fast-slow-dance-fast structure."
-        },
-        {
-          question: "Which instrument family does the violin belong to?",
-          options: ['Brass', 'Woodwind', 'Percussion', 'String'],
-          correct: 'String',
-          explanation: "The violin is a string instrument played with a bow."
-        },
-        {
-          question: "Who wrote 'Für Elise'?",
-          options: ['Mozart', 'Beethoven', 'Chopin', 'Bach'],
-          correct: 'Beethoven',
-          explanation: "Ludwig van Beethoven composed 'Für Elise' around 1810."
-        },
-        {
-          question: "What is the lowest male singing voice called?",
-          options: ['Tenor', 'Baritone', 'Bass', 'Alto'],
-          correct: 'Bass',
-          explanation: "Bass is the lowest male singing voice in classical music."
-        }
-      ],
-      medium: [
-        {
-          question: "Which composer wrote 'The Magic Flute'?",
-          options: ['Haydn', 'Mozart', 'Schubert', 'Weber'],
-          correct: 'Mozart',
-          explanation: "'The Magic Flute' (Die Zauberflöte) was Mozart's final opera, completed in 1791."
-        },
-        {
-          question: "What key is Beethoven's 9th Symphony in?",
-          options: ['C major', 'D major', 'D minor', 'E flat major'],
-          correct: 'D minor',
-          explanation: "Beethoven's 9th Symphony is in D minor, though it ends triumphantly in D major."
-        },
-        {
-          question: "Which period comes after the Baroque period in classical music?",
-          options: ['Romantic', 'Classical', 'Modern', 'Renaissance'],
-          correct: 'Classical',
-          explanation: "The Classical period (1750-1820) followed the Baroque period in music history."
-        },
-        {
-          question: "Who composed 'Rhapsody in Blue'?",
-          options: ['Duke Ellington', 'George Gershwin', 'Aaron Copland', 'Leonard Bernstein'],
-          correct: 'George Gershwin',
-          explanation: "George Gershwin composed 'Rhapsody in Blue' in 1924, blending classical and jazz elements."
-        },
-        {
-          question: "What instrument did Miles Davis primarily play?",
-          options: ['Saxophone', 'Trumpet', 'Piano', 'Trombone'],
-          correct: 'Trumpet',
-          explanation: "Miles Davis was a legendary jazz trumpeter and bandleader."
-        }
-      ],
-      hard: [
-        {
-          question: "Which Bach work is known as 'The Art of Fugue'?",
-          options: ['BWV 1080', 'BWV 988', 'BWV 846-893', 'BWV 1001-1006'],
-          correct: 'BWV 1080',
-          explanation: "'Die Kunst der Fuge' (BWV 1080) is Bach's final masterwork exploring counterpoint."
-        },
-        {
-          question: "What unusual scoring does Schubert's 'Trout Quintet' have?",
-          options: ['Piano, violin, viola, cello, bass', 'Piano, violin, viola, cello, clarinet', 'Piano, 2 violins, viola, cello', 'Piano, violin, viola, cello, horn'],
-          correct: 'Piano, violin, viola, cello, bass',
-          explanation: "The 'Trout Quintet' unusually includes double bass instead of a second violin."
-        },
-        {
-          question: "Which Stravinsky ballet caused a riot at its 1913 premiere?",
-          options: ['The Firebird', 'Petrushka', 'The Rite of Spring', 'Pulcinella'],
-          correct: 'The Rite of Spring',
-          explanation: "'The Rite of Spring' caused a riot in Paris due to its revolutionary rhythms and harmonies."
-        },
-        {
-          question: "What compositional technique is Berg's 'Wozzeck' famous for using?",
-          options: ['Serialism', 'Minimalism', 'Aleatoric music', 'Twelve-tone technique'],
-          correct: 'Twelve-tone technique',
-          explanation: "Berg's 'Wozzeck' was one of the first operas to use Schoenberg's twelve-tone technique."
-        },
-        {
-          question: "Which jazz pianist composed 'Round Midnight'?",
-          options: ['Bill Evans', 'Thelonious Monk', 'Oscar Peterson', 'Herbie Hancock'],
-          correct: 'Thelonious Monk',
-          explanation: "'Round Midnight' is one of Thelonious Monk's most famous compositions from 1944."
-        }
-      ]
-    }
-  };
-
-  // Additional state and features
-  const [leaderboard, setLeaderboard] = useState([
-    { player_name: "MusicMaster", score: 10, percentage: 100, difficulty: "hard", category: "rock" },
-    { player_name: "RockFan92", score: 6, percentage: 80, difficulty: "medium", category: "rock" },
-    { player_name: "JazzLover", score: 4, percentage: 80, difficulty: "easy", category: "classical" },
-  ]);
-
-  const creditPackages = [
-    { 
-      id: 'starter',
-      name: "Starter Pack", 
-      credits: 50, 
-      price: 0.99, 
-      color: "green",
-      popular: false,
-      description: "Perfect for casual players"
-    },
-    { 
-      id: 'pro',
-      name: "Pro Pack", 
-      credits: 150, 
-      price: 1.99, 
-      color: "purple",
-      popular: true,
-      description: "Great value for regular players",
-      savings: "33% savings vs Starter"
-    },
-    { 
-      id: 'ultimate',
-      name: "Ultimate Pack", 
-      credits: 500, 
-      price: 4.99, 
-      color: "yellow",
-      popular: false,
-      description: "Best value for quiz masters",
-      savings: "50% savings vs Starter"
-    }
-  ];
-
-  // Timer effect
-  useEffect(() => {
-    let interval = null;
-    if (isTimerActive && timeLeft > 0 && !showResult) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && !showResult) {
-      handleTimeExpired();
-    }
-    return () => clearInterval(interval);
-  }, [isTimerActive, timeLeft, showResult]);
-
-  // Helper functions
-  const handleTimeExpired = () => {
-    const q = currentQuestions[currentQuestion];
-    setUserAnswers([...userAnswers, { 
-      question: q.question, 
-      selected: 'Time Expired', 
-      correct: q.correct,
-      isCorrect: false,
-      explanation: q.explanation
-    }]);
-    setShowResult(true);
-    setIsTimerActive(false);
-  };
-
-  const buyExtraTime = () => {
-    if (credits > 0) {
-      setCredits(credits - 1);
-      setTimeLeft(timeLeft + 10);
-    }
-  };
-
-  const createUser = (name) => {
-    if (!name || !name.trim()) return;
-    const user = { name: name.trim(), credits: 3, bestScore: 0 };
-    setCurrentUser(user);
-    setPlayerName(name.trim());
-    setView('selection');
-  };
-
-  const addToLeaderboard = (name, finalScore) => {
-    const difficultyInfo = difficulties[selectedDifficulty];
-    const adjustedScore = Math.round(finalScore * difficultyInfo.pointsMultiplier);
-    const percentage = Math.round((finalScore / currentQuestions.length) * 100);
-    const entry = { 
-      player_name: name, 
-      score: adjustedScore, 
-      percentage,
-      difficulty: selectedDifficulty,
-      category: selectedCategory
-    };
-    setLeaderboard([...leaderboard, entry]
-      .sort((a, b) => b.score - a.score || b.percentage - a.percentage)
-      .slice(0, 10));
-  };
-
-  const handleSubmitAnswer = () => {
-    setIsTimerActive(false);
-    const q = currentQuestions[currentQuestion];
-    const isCorrect = selectedAnswer === q.correct;
-    
-    if (isCorrect) setScore(score + 1);
-    
-    setUserAnswers([...userAnswers, { 
-      question: q.question, 
-      selected: selectedAnswer, 
-      correct: q.correct,
-      isCorrect,
-      explanation: q.explanation
-    }]);
-    setShowResult(true);
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestion < currentQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer('');
-      setShowResult(false);
-      const difficultyInfo = difficulties[selectedDifficulty];
-      setTimeLeft(difficultyInfo.timer);
-      setIsTimerActive(true);
-    } else {
-      setQuizComplete(true);
-      setIsTimerActive(false);
-      if (currentUser) {
-        const difficultyInfo = difficulties[selectedDifficulty];
-        const adjustedScore = Math.round(score * difficultyInfo.pointsMultiplier);
-        if (adjustedScore > currentUser.bestScore) {
-          addToLeaderboard(currentUser.name, score);
-        }
-      }
-    }
-  };
-
-  const startTimer = () => {
-    setIsTimerActive(true);
-    const difficultyInfo = difficulties[selectedDifficulty];
-    setTimeLeft(difficultyInfo.timer);
-  };
-  const generateQuestions = (category, difficulty) => {
-    if (category === 'mixed') {
-      // For mixed category, combine questions from all categories at the selected difficulty
-      const allQuestions = [];
-      Object.keys(questionDatabase).forEach(cat => {
-        if (questionDatabase[cat][difficulty]) {
-          allQuestions.push(...questionDatabase[cat][difficulty]);
-        }
-      });
-      // Shuffle and take 5 random questions
-      const shuffled = allQuestions.sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, 5);
-    }
-    
-    return questionDatabase[category]?.[difficulty] || [];
-  };
-
-  const startQuiz = () => {
-    if (!selectedDifficulty || !selectedCategory) return;
-    
-    const questions = generateQuestions(selectedCategory, selectedDifficulty);
-    setCurrentQuestions(questions);
-    const difficultyInfo = difficulties[selectedDifficulty];
-    setTimeLeft(difficultyInfo.timer);
-    setView('quiz');
-  };
-
-  const resetQuiz = () => {
-    setCurrentQuestion(0);
-    setScore(0);
-    setSelectedAnswer('');
-    setShowResult(false);
-    setQuizComplete(false);
-    setUserAnswers([]);
-    setTimeLeft(10);
-    setIsTimerActive(false);
-    setSelectedDifficulty('');
-    setSelectedCategory('');
-    setCurrentQuestions([]);
-    setView('selection');
-  };
-
-  // Common styles
-  const buttonStyle = {
-    border: 'none',
-    borderRadius: '9999px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease'
-  };
-
-  const cardStyle = {
-    background: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '1.5rem',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  };
-
-  const gradientBg = {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #4c1d95 0%, #1e40af 50%, #3730a3 100%)',
-    padding: '1rem'
-  };
-
-  console.log('Current view:', view);
-  console.log('Selected difficulty:', selectedDifficulty);
-  console.log('Selected category:', selectedCategory);
-
-  // ALWAYS SHOW SELECTION SCREEN FIRST
-  if (view === 'selection') {
-    return (
-      <div style={gradientBg}>
-        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-          {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Music style={{ width: '3rem', height: '3rem', color: '#fbbf24' }} />
-              <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-                Daily Music Quiz
-              </h1>
-            </div>
-            <p style={{ fontSize: '1.25rem', color: '#bfdbfe', marginBottom: '2rem' }}>
-              Choose your difficulty and category to start your musical journey
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            {/* Difficulty Selection */}
-            <div style={{ ...cardStyle, padding: '2rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
-                Choose Difficulty
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {Object.entries(difficulties).map(([key, diff]) => {
-                  const Icon = diff.icon;
-                  const isSelected = selectedDifficulty === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedDifficulty(key)}
-                      style={{
-                        padding: '1.5rem',
-                        borderRadius: '1rem',
-                        border: `2px solid ${isSelected ? diff.color : 'rgba(255, 255, 255, 0.2)'}`,
-                        background: isSelected ? diff.bgColor : 'rgba(255, 255, 255, 0.1)',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                        <Icon style={{ width: '2rem', height: '2rem', color: diff.color }} />
-                        <div>
-                          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-                            {diff.name}
-                          </h3>
-                          <p style={{ color: diff.color, fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
-                            {diff.pointsMultiplier}x Points
-                          </p>
-                        </div>
-                      </div>
-                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', margin: 0 }}>
-                        {diff.description}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Category Selection */}
-            <div style={{ ...cardStyle, padding: '2rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '1.5rem', textAlign: 'center' }}>
-                Choose Category
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {Object.entries(categories).map(([key, cat]) => {
-                  const isSelected = selectedCategory === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedCategory(key)}
-                      style={{
-                        padding: '1.5rem',
-                        borderRadius: '1rem',
-                        border: `2px solid ${isSelected ? cat.color : 'rgba(255, 255, 255, 0.2)'}`,
-                        background: isSelected ? cat.bgColor : 'rgba(255, 255, 255, 0.1)',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '2rem' }}>{cat.icon}</span>
-                        <div>
-                          <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-                            {cat.name}
-                          </h3>
-                        </div>
-                      </div>
-                      <p style={{ color: '#bfdbfe', fontSize: '0.875rem', margin: 0 }}>
-                        {cat.description}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Start Quiz Button */}
-          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <button
-              onClick={startQuiz}
-              disabled={!selectedDifficulty || !selectedCategory}
-              style={{
-                ...buttonStyle,
-                background: (selectedDifficulty && selectedCategory)
-                  ? 'linear-gradient(135deg, #059669, #2563eb)'
-                  : '#6b7280',
-                color: (selectedDifficulty && selectedCategory) ? 'white' : '#9ca3af',
-                cursor: (selectedDifficulty && selectedCategory) ? 'pointer' : 'not-allowed',
-                padding: '1rem 3rem',
-                fontSize: '1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                margin: '0 auto'
-              }}
-            >
-              <Play style={{ width: '1.5rem', height: '1.5rem' }} />
-              Start Quiz
-            </button>
-            
-            {selectedDifficulty && selectedCategory && (
-              <p style={{ color: '#bfdbfe', marginTop: '1rem', fontSize: '0.875rem' }}>
-                You'll face 5 questions • {difficulties[selectedDifficulty].timer}s per question • {difficulties[selectedDifficulty].pointsMultiplier}x score multiplier
-              </p>
-            )}
-          </div>
-
-          {/* Navigation */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-            {!currentUser && (
-              <button 
-                onClick={() => setView('nameEntry')} 
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#93c5fd',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontSize: '1rem'
-                }}
-              >
-                Create Profile
-              </button>
-            )}
-            <button 
-              onClick={() => setView('leaderboard')} 
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontSize: '1rem'
-              }}
-            >
-              View Leaderboard
-            </button>
-            <button 
-              onClick={() => setView('store')} 
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#93c5fd',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                fontSize: '1rem'
-              }}
-            >
-              Credit Store
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
-  // Simple fallback for other views
   return (
     <div style={gradientBg}>
       <div style={{ maxWidth: '32rem', margin: '0 auto', textAlign: 'center', paddingTop: '2rem' }}>
         <div style={{ ...cardStyle, padding: '2rem' }}>
           <Music style={{ width: '4rem', height: '4rem', color: '#fbbf24', margin: '0 auto 1rem' }} />
           <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem' }}>
-            Music Quiz - {view}
+            Welcome to Daily Music Quiz!
           </h2>
-          <p style={{ color: '#bfdbfe', marginBottom: '2rem' }}>
-            Current view: {view}
-          </p>
           <button
             onClick={() => setView('selection')}
             style={{
@@ -1415,7 +1310,7 @@ const DailyMusicQuiz = () => {
               fontSize: '1rem'
             }}
           >
-            Go to Selection
+            Go to Selection Menu
           </button>
         </div>
       </div>
