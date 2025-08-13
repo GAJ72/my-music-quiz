@@ -790,8 +790,7 @@ const DailyMusicQuiz = () => {
                    </div>
                    <span style={{ color: 'white', fontWeight: '600' }}>{entry.player_name}</span>
                  </div>
-                 // In the leaderboard map function
-                <div style={{ textAlign: 'right' }}>
+                  <div style={{ textAlign: 'right' }}>
                   <div style={{ color: 'white', fontWeight: 'bold' }}>{entry.score}/{questions.length}</div>
                   <div style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>{entry.percentage}%</div>
                 </div>
